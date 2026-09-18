@@ -280,7 +280,8 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
     return BouncingScale(
       onTap: () => setState(() => _selectedCategoryId = id),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
         width: 124,
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(12),

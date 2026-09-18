@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Micro-animation wrapper that provides a springy tap down/up animation with subtle haptics
+/// Snappy micro-animation wrapper that provides a fast, tactile spring tap with subtle haptics
 class BouncingScale extends StatefulWidget {
   const BouncingScale({
     super.key,
     required this.child,
     this.onTap,
-    this.scaleFactor = 0.96,
+    this.scaleFactor = 0.97,
     this.enableHaptic = true,
   });
 
@@ -30,8 +30,8 @@ class _BouncingScaleState extends State<BouncingScale>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
-      reverseDuration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 60),
+      reverseDuration: const Duration(milliseconds: 100),
     );
 
     _scaleAnimation = Tween<double>(
@@ -40,7 +40,7 @@ class _BouncingScaleState extends State<BouncingScale>
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeInOut,
+        curve: Curves.easeOut,
         reverseCurve: Curves.easeOutBack,
       ),
     );

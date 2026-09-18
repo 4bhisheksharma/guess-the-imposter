@@ -9,7 +9,7 @@ class GameController extends ChangeNotifier {
 
   GameSession get session => _session;
 
-  /// Starts a new game session with assigned roles
+  /// Starts a new game session with cryptographically random assigned roles
   void startNewGame({
     required List<String> playerNames,
     required int imposterCount,
@@ -18,15 +18,13 @@ class GameController extends ChangeNotifier {
     String hint = '',
     bool imposterHintEnabled = true,
   }) {
-    final random = Random();
+    final random = Random.secure();
     final totalPlayers = playerNames.length;
     final clampedImposters = imposterCount.clamp(1, totalPlayers - 1);
 
-    // Pick random indices for imposters
-    final imposterIndices = <int>{};
-    while (imposterIndices.length < clampedImposters) {
-      imposterIndices.add(random.nextInt(totalPlayers));
-    }
+    // Shuffle player indices securely to guarantee true randomness
+    final shuffledIndices = List<int>.generate(totalPlayers, (i) => i)..shuffle(random);
+    final imposterIndices = shuffledIndices.take(clampedImposters).toSet();
 
     final players = List.generate(totalPlayers, (index) {
       final isImposter = imposterIndices.contains(index);

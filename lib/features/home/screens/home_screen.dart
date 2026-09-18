@@ -127,62 +127,40 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Top Bar with Minimal Settings Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              Align(
+                alignment: Alignment.topRight,
+                child: BouncingScale(
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+                  child: Container(
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(20),
+                      shape: BoxShape.circle,
                       border: Border.all(
                         color: isDark ? AppColors.borderDark : AppColors.borderLight,
                       ),
+                      boxShadow: !isDark
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : null,
                     ),
-                    child: const Row(
-                      children: [
-                        FaIcon(FontAwesomeIcons.fire, color: AppColors.primary, size: 14),
-                        SizedBox(width: 8),
-                        Text(
-                          'Party Deduction',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  BouncingScale(
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                        ),
-                        boxShadow: !isDark
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Center(
-                        child: FaIcon(
-                          FontAwesomeIcons.gear,
-                          size: 16,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                        ),
+                    child: Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.gear,
+                        size: 16,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
 
               // Hero Minimal Graphic & Title

@@ -1,8 +1,8 @@
-import 'package:find_the_imposter/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/game_controller.dart';
@@ -21,9 +21,11 @@ class RoleRevealScreen extends StatefulWidget {
 class _RoleRevealScreenState extends State<RoleRevealScreen> {
   bool _isSecretVisible = false;
 
-  void _toggleSecret() {
+  void _revealSecret() {
+    // Once revealed, player cannot un-reveal it
+    if (_isSecretVisible) return;
     HapticFeedback.selectionClick();
-    setState(() => _isSecretVisible = !_isSecretVisible);
+    setState(() => _isSecretVisible = true);
   }
 
   void _onNext() {
@@ -77,9 +79,9 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                               : AppColors.surfaceLightElevated,
                           shape: BoxShape.circle,
                         ),
-                        child: FaIcon(
+                        child: const FaIcon(
                           FontAwesomeIcons.user,
-                          size: 28,
+                          size: 26,
                           color: AppColors.primary,
                         ),
                       ),
@@ -109,7 +111,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
 
                   // Secret Reveal Card
                   AppCard(
-                    onTap: _toggleSecret,
+                    onTap: _isSecretVisible ? null : _revealSecret,
                     padding: const EdgeInsets.all(28),
                     borderColor: _isSecretVisible
                         ? (currentPlayer.isImposter
@@ -124,14 +126,14 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                             : AppColors.primarySoft)
                         : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
                     child: AnimatedSize(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
+                      duration: const Duration(milliseconds: 140),
+                      curve: Curves.easeOutCubic,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 60,
-                            height: 60,
+                            width: 58,
+                            height: 58,
                             decoration: BoxDecoration(
                               color: _isSecretVisible
                                   ? (_currentPlayerColor(currentPlayer)
@@ -148,7 +150,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                                         ? FontAwesomeIcons.userSecret
                                         : FontAwesomeIcons.lightbulb)
                                     : FontAwesomeIcons.eyeSlash,
-                                size: 24,
+                                size: 22,
                                 color: _isSecretVisible
                                     ? _currentPlayerColor(currentPlayer)
                                     : (isDark
@@ -157,7 +159,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
                           if (!_isSecretVisible) ...[
                             Text(
                               'Tap to Reveal Secret',
@@ -273,7 +275,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                     ),
                   ),
 
-                  // Next Action Button
+                  // Next Action Button (enabled only after role has been revealed)
                   CustomButton(
                     label: session.currentRevealIndex + 1 == totalPlayers
                         ? 'Start Discussion'
@@ -281,7 +283,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                     icon: session.currentRevealIndex + 1 == totalPlayers
                         ? FontAwesomeIcons.play
                         : FontAwesomeIcons.arrowRight,
-                    onPressed: _onNext,
+                    onPressed: _isSecretVisible ? _onNext : null,
                   ),
                 ],
               ),
