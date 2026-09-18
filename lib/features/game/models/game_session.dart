@@ -18,6 +18,7 @@ class GameSession {
     this.imposterCount = 1,
     this.currentRevealIndex = 0,
     this.phase = GamePhase.setup,
+    this.discussionDurationSeconds = 180,
   });
 
   final List<PlayerModel> players;
@@ -28,6 +29,7 @@ class GameSession {
   final int imposterCount;
   final int currentRevealIndex;
   final GamePhase phase;
+  final int discussionDurationSeconds;
 
   PlayerModel? get currentRevealPlayer {
     if (currentRevealIndex < players.length) {
@@ -53,6 +55,7 @@ class GameSession {
     int? imposterCount,
     int? currentRevealIndex,
     GamePhase? phase,
+    int? discussionDurationSeconds,
   }) {
     return GameSession(
       players: players ?? this.players,
@@ -63,6 +66,8 @@ class GameSession {
       imposterCount: imposterCount ?? this.imposterCount,
       currentRevealIndex: currentRevealIndex ?? this.currentRevealIndex,
       phase: phase ?? this.phase,
+      discussionDurationSeconds:
+          discussionDurationSeconds ?? this.discussionDurationSeconds,
     );
   }
 }

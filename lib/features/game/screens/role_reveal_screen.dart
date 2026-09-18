@@ -5,14 +5,20 @@ import '../../../app/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../settings/controllers/settings_controller.dart';
 import '../controllers/game_controller.dart';
 import '../models/game_session.dart';
 import '../models/player_model.dart';
 
 class RoleRevealScreen extends StatefulWidget {
-  const RoleRevealScreen({super.key, required this.controller});
+  const RoleRevealScreen({
+    super.key,
+    required this.controller,
+    this.settingsController,
+  });
 
   final GameController controller;
+  final SettingsController? settingsController;
 
   @override
   State<RoleRevealScreen> createState() => _RoleRevealScreenState();
@@ -20,17 +26,30 @@ class RoleRevealScreen extends StatefulWidget {
 
 class _RoleRevealScreenState extends State<RoleRevealScreen> {
   bool _isSecretVisible = false;
+  bool _hasViewedSecret = false;
+
+  bool get _isHoldMode => widget.settingsController?.holdToReveal ?? false;
 
   void _revealSecret() {
-    // Once revealed, player cannot un-reveal it
-    if (_isSecretVisible) return;
+    if (_isSecretVisible && !_isHoldMode) return;
     HapticFeedback.selectionClick();
-    setState(() => _isSecretVisible = true);
+    setState(() {
+      _isSecretVisible = true;
+      _hasViewedSecret = true;
+    });
+  }
+
+  void _hideSecret() {
+    if (!_isHoldMode) return;
+    setState(() => _isSecretVisible = false);
   }
 
   void _onNext() {
     HapticFeedback.lightImpact();
-    setState(() => _isSecretVisible = false);
+    setState(() {
+      _isSecretVisible = false;
+      _hasViewedSecret = false;
+    });
     widget.controller.advanceRoleReveal();
 
     if (widget.controller.session.phase == GamePhase.discussion) {
@@ -110,78 +129,88 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                   ),
 
                   // Secret Reveal Card
-                  AppCard(
-                    onTap: _isSecretVisible ? null : _revealSecret,
-                    padding: const EdgeInsets.all(28),
-                    borderColor: _isSecretVisible
-                        ? (currentPlayer.isImposter
-                            ? AppColors.imposter
-                            : AppColors.primary)
-                        : (isDark ? AppColors.borderDark : AppColors.borderLight),
-                    backgroundColor: _isSecretVisible
-                        ? (currentPlayer.isImposter
-                            ? (isDark
-                                ? AppColors.imposter.withValues(alpha: 0.15)
-                                : const Color(0xFFFDEDEC))
-                            : AppColors.primarySoft)
-                        : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 140),
-                      curve: Curves.easeOutCubic,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 58,
-                            height: 58,
-                            decoration: BoxDecoration(
-                              color: _isSecretVisible
-                                  ? (_currentPlayerColor(currentPlayer)
-                                      .withValues(alpha: 0.15))
-                                  : (isDark
-                                      ? AppColors.surfaceDarkElevated
-                                      : AppColors.surfaceLightElevated),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: FaIcon(
-                                _isSecretVisible
-                                    ? (_isImposter(currentPlayer)
-                                        ? FontAwesomeIcons.userSecret
-                                        : FontAwesomeIcons.lightbulb)
-                                    : FontAwesomeIcons.eyeSlash,
-                                size: 22,
+                  GestureDetector(
+                    onTapDown: _isHoldMode ? (_) => _revealSecret() : null,
+                    onTapUp: _isHoldMode ? (_) => _hideSecret() : null,
+                    onTapCancel: _isHoldMode ? () => _hideSecret() : null,
+                    child: AppCard(
+                      onTap: !_isHoldMode
+                          ? (_isSecretVisible ? null : _revealSecret)
+                          : null,
+                      padding: const EdgeInsets.all(28),
+                      borderColor: _isSecretVisible
+                          ? (currentPlayer.isImposter
+                              ? AppColors.imposter
+                              : AppColors.primary)
+                          : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                      backgroundColor: _isSecretVisible
+                          ? (currentPlayer.isImposter
+                              ? (isDark
+                                  ? AppColors.imposter.withValues(alpha: 0.15)
+                                  : const Color(0xFFFDEDEC))
+                              : AppColors.primarySoft)
+                          : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
+                      child: AnimatedSize(
+                        duration: const Duration(milliseconds: 140),
+                        curve: Curves.easeOutCubic,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 58,
+                              height: 58,
+                              decoration: BoxDecoration(
                                 color: _isSecretVisible
-                                    ? _currentPlayerColor(currentPlayer)
+                                    ? (_currentPlayerColor(currentPlayer)
+                                        .withValues(alpha: 0.15))
                                     : (isDark
-                                        ? AppColors.textMutedDark
-                                        : AppColors.textMutedLight),
+                                        ? AppColors.surfaceDarkElevated
+                                        : AppColors.surfaceLightElevated),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: FaIcon(
+                                  _isSecretVisible
+                                      ? (_isImposter(currentPlayer)
+                                          ? FontAwesomeIcons.userSecret
+                                          : FontAwesomeIcons.lightbulb)
+                                      : FontAwesomeIcons.eyeSlash,
+                                  size: 22,
+                                  color: _isSecretVisible
+                                      ? _currentPlayerColor(currentPlayer)
+                                      : (isDark
+                                          ? AppColors.textMutedDark
+                                          : AppColors.textMutedLight),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          if (!_isSecretVisible) ...[
-                            Text(
-                              'Tap to Reveal Secret',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimaryLight,
+                            const SizedBox(height: 16),
+                            if (!_isSecretVisible) ...[
+                              Text(
+                                _isHoldMode
+                                    ? 'Hold to Peek Secret'
+                                    : 'Tap to Reveal Secret',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Make sure nobody else is looking!',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
+                              const SizedBox(height: 6),
+                              Text(
+                                _isHoldMode
+                                    ? 'Release to hide role before passing'
+                                    : 'Make sure nobody else is looking!',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
                               ),
-                            ),
-                          ] else ...[
+                            ] else ...[
                             if (currentPlayer.isImposter) ...[
                               const Text(
                                 'YOU ARE THE IMPOSTER!',
@@ -274,6 +303,7 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                       ),
                     ),
                   ),
+                  ),
 
                   // Next Action Button (enabled only after role has been revealed)
                   CustomButton(
@@ -283,7 +313,8 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
                     icon: session.currentRevealIndex + 1 == totalPlayers
                         ? FontAwesomeIcons.play
                         : FontAwesomeIcons.arrowRight,
-                    onPressed: _isSecretVisible ? _onNext : null,
+                    onPressed:
+                        (_isSecretVisible || _hasViewedSecret) ? _onNext : null,
                   ),
                 ],
               ),

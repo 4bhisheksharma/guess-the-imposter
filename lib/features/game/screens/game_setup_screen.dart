@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/word_service.dart';
+import '../../../core/utils/timer_helper.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/bouncing_scale.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -29,11 +30,13 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
   int _imposterCount = AppConstants.defaultImpostersCount;
   String _selectedCategoryId = 'all';
   late bool _enableHints;
+  late int _discussionTimerSeconds;
 
   @override
   void initState() {
     super.initState();
     _enableHints = widget.settingsController.enableImposterHints;
+    _discussionTimerSeconds = widget.settingsController.discussionTimerSeconds;
     WordService.instance.loadWords();
   }
 
@@ -77,6 +80,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
       secretWord: wordEntry.word,
       hint: wordEntry.hint,
       imposterHintEnabled: _enableHints,
+      discussionDurationSeconds: _discussionTimerSeconds,
     );
 
     Navigator.pushNamed(context, AppRoutes.roleReveal);
@@ -84,9 +88,12 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final categories = WordService.instance.categories;
-    final totalWords = WordService.instance.totalWordCount;
+    return ListenableBuilder(
+      listenable: WordService.instance,
+      builder: (context, _) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final categories = WordService.instance.categories;
+        final totalWords = WordService.instance.totalWordCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -191,6 +198,151 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Discussion Timer Card
+                    AppCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.surfaceDarkElevated
+                                          : AppColors.surfaceLightElevated,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Center(
+                                      child: FaIcon(
+                                        FontAwesomeIcons.stopwatch,
+                                        size: 16,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Discussion Time',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Timer for debate & clues',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondaryLight,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  BouncingScale(
+                                    onTap: _discussionTimerSeconds > 30
+                                        ? () => setState(
+                                            () => _discussionTimerSeconds -= 30)
+                                        : null,
+                                    child: Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: _discussionTimerSeconds > 30
+                                            ? AppColors.primarySoft
+                                            : (isDark
+                                                ? AppColors.surfaceDarkElevated
+                                                : AppColors.surfaceLightElevated),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: FaIcon(
+                                          FontAwesomeIcons.minus,
+                                          size: 12,
+                                          color: _discussionTimerSeconds > 30
+                                              ? AppColors.primary
+                                              : (isDark
+                                                  ? AppColors.textMutedDark
+                                                  : AppColors.textMutedLight),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Text(
+                                      TimerHelper.formatDuration(
+                                          _discussionTimerSeconds),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  BouncingScale(
+                                    onTap: _discussionTimerSeconds < 600
+                                        ? () => setState(
+                                            () => _discussionTimerSeconds += 30)
+                                        : null,
+                                    child: Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: _discussionTimerSeconds < 600
+                                            ? AppColors.primary
+                                            : (isDark
+                                                ? AppColors.surfaceDarkElevated
+                                                : AppColors.surfaceLightElevated),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: FaIcon(
+                                          FontAwesomeIcons.plus,
+                                          size: 12,
+                                          color: _discussionTimerSeconds < 600
+                                              ? Colors.white
+                                              : (isDark
+                                                  ? AppColors.textMutedDark
+                                                  : AppColors.textMutedLight),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          // Preset Pills
+                          Row(
+                            children: [
+                              _buildTimerPresetChip('1 min', 60),
+                              const SizedBox(width: 8),
+                              _buildTimerPresetChip('2 min', 120),
+                              const SizedBox(width: 8),
+                              _buildTimerPresetChip('3 min', 180),
+                              const SizedBox(width: 8),
+                              _buildTimerPresetChip('5 min', 300),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
                     // Imposter Single-Word Hint Toggle Card
                     AppCard(
                       child: Row(
@@ -262,6 +414,52 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                 onPressed: _onStartGame,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+      },
+    );
+  }
+
+  Widget _buildTimerPresetChip(String label, int seconds) {
+    final isSelected = _discussionTimerSeconds == seconds;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Expanded(
+      child: BouncingScale(
+        onTap: () => setState(() => _discussionTimerSeconds = seconds),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark
+                    ? AppColors.surfaceDarkElevated
+                    : AppColors.surfaceLightElevated),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark ? AppColors.borderDark : AppColors.borderLight),
+              width: 1.2,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight),
+              ),
+            ),
           ),
         ),
       ),

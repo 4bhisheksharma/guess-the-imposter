@@ -47,8 +47,10 @@ class _ImposterAppState extends State<ImposterApp> {
                   controller: _gameController,
                   settingsController: _settingsController,
                 ),
-            AppRoutes.roleReveal: (context) =>
-                RoleRevealScreen(controller: _gameController),
+            AppRoutes.roleReveal: (context) => RoleRevealScreen(
+                  controller: _gameController,
+                  settingsController: _settingsController,
+                ),
             AppRoutes.discussion: (context) =>
                 DiscussionScreen(controller: _gameController),
             AppRoutes.results: (context) =>

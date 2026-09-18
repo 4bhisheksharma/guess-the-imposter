@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/game_controller.dart';
 import '../widgets/player_card.dart';
@@ -21,21 +21,47 @@ class DiscussionScreen extends StatefulWidget {
 class _DiscussionScreenState extends State<DiscussionScreen> {
   late int _remainingSeconds;
   Timer? _timer;
+  bool _isPaused = false;
   String? _selectedPlayerId;
 
   @override
   void initState() {
     super.initState();
-    _remainingSeconds = AppConstants.defaultDiscussionSeconds;
+    _remainingSeconds = widget.controller.session.discussionDurationSeconds;
     _startTimer();
   }
 
   void _startTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
-        setState(() => _remainingSeconds--);
+        if (!_isPaused) {
+          setState(() {
+            _remainingSeconds--;
+            if (_remainingSeconds <= 10 && _remainingSeconds > 0) {
+              HapticFeedback.selectionClick();
+            } else if (_remainingSeconds == 0) {
+              HapticFeedback.heavyImpact();
+            }
+          });
+        }
       } else {
         _timer?.cancel();
+      }
+    });
+  }
+
+  void _togglePause() {
+    HapticFeedback.lightImpact();
+    setState(() => _isPaused = !_isPaused);
+  }
+
+  void _add30Seconds() {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _remainingSeconds += 30;
+      if (_timer == null || !_timer!.isActive) {
+        _startTimer();
       }
     });
   }
@@ -70,17 +96,77 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
             children: [
               TimerDisplay(
                 remainingSeconds: _remainingSeconds,
-                totalSeconds: AppConstants.defaultDiscussionSeconds,
+                totalSeconds: session.discussionDurationSeconds,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 10),
+              // Compact Quick Timer Controls (Pause/Play & +30s)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    onPressed: _togglePause,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      backgroundColor: isDark
+                          ? AppColors.surfaceDarkElevated
+                          : AppColors.surfaceLightElevated,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    icon: FaIcon(
+                      _isPaused
+                          ? FontAwesomeIcons.play
+                          : FontAwesomeIcons.pause,
+                      size: 11,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      _isPaused ? 'Resume' : 'Pause',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  TextButton.icon(
+                    onPressed: _add30Seconds,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      backgroundColor: isDark
+                          ? AppColors.surfaceDarkElevated
+                          : AppColors.surfaceLightElevated,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    icon: const FaIcon(
+                      FontAwesomeIcons.plus,
+                      size: 10,
+                      color: AppColors.primary,
+                    ),
+                    label: const Text(
+                      '+30s',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
               Text(
                 'Who is acting suspicious?',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? Colors.white
-                      : Colors.black87,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               const SizedBox(height: 12),

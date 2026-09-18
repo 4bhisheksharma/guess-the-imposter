@@ -6,8 +6,22 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/widgets/bouncing_scale.dart';
 import '../../../core/widgets/custom_button.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../../../core/services/word_service.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Pre-warm words database on home screen mount
+    WordService.instance.loadWords();
+  }
 
   void _showHowToPlayDialog(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

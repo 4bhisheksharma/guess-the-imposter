@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class WordEntry {
@@ -42,11 +43,11 @@ class WordCategory {
   }
 }
 
-class WordService {
+class WordService extends ChangeNotifier {
   WordService._();
   static final WordService instance = WordService._();
 
-  List<WordCategory> _categories = [];
+  List<WordCategory> _categories = _fallbackCategories;
   bool _isLoaded = false;
   final Random _random = Random();
 
@@ -59,7 +60,7 @@ class WordService {
 
   /// Loads categories and words from assets/data/words.json
   Future<void> loadWords() async {
-    if (_isLoaded && _categories.isNotEmpty) return;
+    if (_isLoaded && _categories.length > _fallbackCategories.length) return;
 
     try {
       final jsonString = await rootBundle.loadString('assets/data/words.json');
@@ -68,12 +69,16 @@ class WordService {
           .map((c) => WordCategory.fromJson(c as Map<String, dynamic>))
           .toList();
 
-      _categories = categoriesList;
-      _isLoaded = true;
+      if (categoriesList.isNotEmpty) {
+        _categories = categoriesList;
+        _isLoaded = true;
+        notifyListeners();
+      }
     } catch (_) {
       // Fallback in-memory set if bundle is unavailable during headless tests
       _categories = _fallbackCategories;
       _isLoaded = true;
+      notifyListeners();
     }
   }
 

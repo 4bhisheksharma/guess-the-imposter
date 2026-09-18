@@ -17,6 +17,7 @@ class GameController extends ChangeNotifier {
     required String secretWord,
     String hint = '',
     bool imposterHintEnabled = true,
+    int discussionDurationSeconds = 180,
   }) {
     final random = Random.secure();
     final totalPlayers = playerNames.length;
@@ -46,6 +47,7 @@ class GameController extends ChangeNotifier {
       imposterCount: clampedImposters,
       currentRevealIndex: 0,
       phase: GamePhase.roleReveal,
+      discussionDurationSeconds: discussionDurationSeconds,
     );
 
     notifyListeners();
