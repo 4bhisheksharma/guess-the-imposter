@@ -1,7 +1,7 @@
 name: find_the_imposter
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.1.1+1
 
 environment:
   sdk: ^3.13.3
@@ -17,3 +17,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/

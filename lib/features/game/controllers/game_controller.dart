@@ -1,0 +1,92 @@
+import 'dart:math';
+import 'package:flutter/foundation.dart';
+import '../models/game_session.dart';
+import '../models/player_model.dart';
+
+/// Game controller managing state transitions and player roles
+class GameController extends ChangeNotifier {
+  GameSession _session = const GameSession();
+
+  GameSession get session => _session;
+
+  /// Starts a new game session with assigned roles
+  void startNewGame({
+    required List<String> playerNames,
+    required int imposterCount,
+    required String category,
+    required String secretWord,
+  }) {
+    final random = Random();
+    final totalPlayers = playerNames.length;
+    final clampedImposters = imposterCount.clamp(1, totalPlayers - 1);
+
+    // Pick random indices for imposters
+    final imposterIndices = <int>{};
+    while (imposterIndices.length < clampedImposters) {
+      imposterIndices.add(random.nextInt(totalPlayers));
+    }
+
+    final players = List.generate(totalPlayers, (index) {
+      final isImposter = imposterIndices.contains(index);
+      return PlayerModel(
+        id: 'player_$index',
+        name: playerNames[index],
+        role: isImposter ? PlayerRole.imposter : PlayerRole.civilian,
+        secretWord: isImposter ? '??? (You are the Imposter!)' : secretWord,
+      );
+    });
+
+    _session = GameSession(
+      players: players,
+      category: category,
+      secretWord: secretWord,
+      imposterCount: clampedImposters,
+      currentRevealIndex: 0,
+      phase: GamePhase.roleReveal,
+    );
+
+    notifyListeners();
+  }
+
+  /// Advances to the next player's secret role reveal
+  void advanceRoleReveal() {
+    if (_session.currentRevealIndex + 1 < _session.players.length) {
+      _session = _session.copyWith(
+        currentRevealIndex: _session.currentRevealIndex + 1,
+      );
+    } else {
+      _session = _session.copyWith(
+        phase: GamePhase.discussion,
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Transitions from discussion to voting phase
+  void startVoting() {
+    _session = _session.copyWith(phase: GamePhase.voting);
+    notifyListeners();
+  }
+
+  /// Eliminates a player and checks for victory conditions
+  void eliminatePlayer(String playerId) {
+    final updatedPlayers = _session.players.map((p) {
+      if (p.id == playerId) {
+        return p.copyWith(isEliminated: true);
+      }
+      return p;
+    }).toList();
+
+    _session = _session.copyWith(
+      players: updatedPlayers,
+      phase: GamePhase.gameOver,
+    );
+    notifyListeners();
+  }
+
+  /// Resets back to game setup
+  void resetGame() {
+    _session = const GameSession();
+    notifyListeners();
+  }
+}
