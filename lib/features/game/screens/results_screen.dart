@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -12,6 +13,7 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final session = controller.session;
     final imposters = session.imposters;
     final eliminatedImposter = imposters.any((p) => p.isEliminated);
@@ -23,35 +25,53 @@ class ResultsScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Result Card
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: eliminatedImposter
-                      ? AppColors.civilian.withValues(alpha: 0.15)
-                      : AppColors.imposter.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
+                      ? (isDark
+                          ? AppColors.civilian.withValues(alpha: 0.15)
+                          : const Color(0xFFE8F8F0))
+                      : (isDark
+                          ? AppColors.imposter.withValues(alpha: 0.15)
+                          : const Color(0xFFFDEDEC)),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: eliminatedImposter
                         ? AppColors.civilian
                         : AppColors.imposter,
+                    width: 1.5,
                   ),
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      eliminatedImposter
-                          ? Icons.emoji_events_rounded
-                          : Icons.theater_comedy,
-                      size: 54,
-                      color: eliminatedImposter
-                          ? AppColors.civilian
-                          : AppColors.imposter,
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: eliminatedImposter
+                            ? AppColors.civilian.withValues(alpha: 0.2)
+                            : AppColors.imposter.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: FaIcon(
+                          eliminatedImposter
+                              ? FontAwesomeIcons.trophy
+                              : FontAwesomeIcons.userSecret,
+                          size: 24,
+                          color: eliminatedImposter
+                              ? AppColors.civilian
+                              : AppColors.imposter,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Text(
                       eliminatedImposter
                           ? 'Civilians Win!'
@@ -61,21 +81,58 @@ class ResultsScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Secret word was: ${session.secretWord}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                      ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Word: ',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          session.secretWord,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
                     ),
+                    if (session.hint.isNotEmpty && session.imposterHintEnabled) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const FaIcon(
+                            FontAwesomeIcons.lightbulb,
+                            size: 12,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Imposter Hint: "${session.hint}"',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               const Text(
                 'Players & Roles',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Expanded(
@@ -94,7 +151,7 @@ class ResultsScreen extends StatelessWidget {
               const SizedBox(height: 12),
               CustomButton(
                 label: 'Play Again',
-                icon: Icons.replay_rounded,
+                icon: FontAwesomeIcons.rotateRight,
                 onPressed: () {
                   controller.resetGame();
                   Navigator.pushNamedAndRemoveUntil(
@@ -107,8 +164,13 @@ class ResultsScreen extends StatelessWidget {
               const SizedBox(height: 8),
               CustomButton(
                 label: 'Main Menu',
-                backgroundColor: AppColors.surfaceDark,
-                textColor: AppColors.textPrimary,
+                icon: FontAwesomeIcons.house,
+                backgroundColor: isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
+                textColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
                 onPressed: () {
                   controller.resetGame();
                   Navigator.pushNamedAndRemoveUntil(

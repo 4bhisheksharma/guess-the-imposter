@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../models/player_model.dart';
 
@@ -19,32 +20,58 @@ class PlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color borderColor = AppColors.border;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Color borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
     if (isSelected) {
       borderColor = AppColors.primary;
     } else if (revealRole) {
       borderColor = player.isImposter ? AppColors.imposter : AppColors.civilian;
     }
 
+    final cardBg = isSelected
+        ? AppColors.primarySoft
+        : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight);
+
     return AppCard(
       onTap: onTap,
       borderColor: borderColor,
       backgroundColor: player.isEliminated
-          ? AppColors.surfaceDark.withValues(alpha: 0.5)
-          : AppColors.surfaceDark,
+          ? (isDark ? AppColors.surfaceDark.withValues(alpha: 0.4) : Colors.grey.shade200)
+          : cardBg,
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundColor: revealRole
-                ? (player.isImposter ? AppColors.imposter : AppColors.civilian)
-                : AppColors.surfaceElevated,
-            child: Icon(
-              player.isEliminated
-                  ? Icons.close
-                  : (revealRole && player.isImposter
-                      ? Icons.theater_comedy
-                      : Icons.person),
-              color: Colors.white,
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: revealRole
+                  ? (player.isImposter
+                      ? AppColors.imposter.withValues(alpha: 0.15)
+                      : AppColors.civilian.withValues(alpha: 0.15))
+                  : (isSelected
+                      ? AppColors.primary
+                      : (isDark
+                          ? AppColors.surfaceDarkElevated
+                          : AppColors.surfaceLightElevated)),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: FaIcon(
+                player.isEliminated
+                    ? FontAwesomeIcons.xmark
+                    : (revealRole && player.isImposter
+                        ? FontAwesomeIcons.userSecret
+                        : FontAwesomeIcons.user),
+                size: 16,
+                color: revealRole
+                    ? (player.isImposter ? AppColors.imposter : AppColors.civilian)
+                    : (isSelected
+                        ? Colors.white
+                        : (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight)),
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -60,6 +87,9 @@ class PlayerCard extends StatelessWidget {
                     decoration: player.isEliminated
                         ? TextDecoration.lineThrough
                         : null,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 if (revealRole)
@@ -70,14 +100,18 @@ class PlayerCard extends StatelessWidget {
                       color: player.isImposter
                           ? AppColors.imposter
                           : AppColors.civilian,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
               ],
             ),
           ),
           if (isSelected)
-            const Icon(Icons.check_circle, color: AppColors.primary),
+            const FaIcon(
+              FontAwesomeIcons.solidCircleCheck,
+              color: AppColors.primary,
+              size: 20,
+            ),
         ],
       ),
     );

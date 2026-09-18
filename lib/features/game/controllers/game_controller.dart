@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/game_session.dart';
 import '../models/player_model.dart';
 
-/// Game controller managing state transitions and player roles
+/// Game controller managing state transitions, player roles, and imposter hints
 class GameController extends ChangeNotifier {
   GameSession _session = const GameSession();
 
@@ -15,6 +15,8 @@ class GameController extends ChangeNotifier {
     required int imposterCount,
     required String category,
     required String secretWord,
+    String hint = '',
+    bool imposterHintEnabled = true,
   }) {
     final random = Random();
     final totalPlayers = playerNames.length;
@@ -32,7 +34,8 @@ class GameController extends ChangeNotifier {
         id: 'player_$index',
         name: playerNames[index],
         role: isImposter ? PlayerRole.imposter : PlayerRole.civilian,
-        secretWord: isImposter ? '??? (You are the Imposter!)' : secretWord,
+        secretWord: isImposter ? 'IMPOSTER' : secretWord,
+        hint: isImposter && imposterHintEnabled ? hint : '',
       );
     });
 
@@ -40,6 +43,8 @@ class GameController extends ChangeNotifier {
       players: players,
       category: category,
       secretWord: secretWord,
+      hint: hint,
+      imposterHintEnabled: imposterHintEnabled,
       imposterCount: clampedImposters,
       currentRevealIndex: 0,
       phase: GamePhase.roleReveal,

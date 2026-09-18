@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -46,32 +48,40 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
 
   void _onEliminate() {
     if (_selectedPlayerId == null) return;
+    HapticFeedback.heavyImpact();
     widget.controller.eliminatePlayer(_selectedPlayerId!);
     Navigator.pushReplacementNamed(context, AppRoutes.results);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final session = widget.controller.session;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Discussion & Voting'),
+        title: const Text('Discussion & Vote'),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             children: [
               TimerDisplay(
                 remainingSeconds: _remainingSeconds,
                 totalSeconds: AppConstants.defaultDiscussionSeconds,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Discuss! Who is acting suspicious?',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              const SizedBox(height: 18),
+              Text(
+                'Who is acting suspicious?',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? Colors.white
+                      : Colors.black87,
+                ),
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -84,6 +94,7 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
                       player: player,
                       isSelected: _selectedPlayerId == player.id,
                       onTap: () {
+                        HapticFeedback.selectionClick();
                         setState(() {
                           _selectedPlayerId = player.id;
                         });
@@ -95,7 +106,7 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
               const SizedBox(height: 12),
               CustomButton(
                 label: 'Vote to Eliminate',
-                icon: Icons.how_to_vote_rounded,
+                icon: FontAwesomeIcons.gavel,
                 onPressed: _selectedPlayerId != null ? _onEliminate : null,
               ),
             ],

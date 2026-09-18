@@ -6,6 +6,7 @@ class PlayerModel {
     required this.name,
     this.role = PlayerRole.civilian,
     this.secretWord = '',
+    this.hint = '',
     this.isEliminated = false,
   });
 
@@ -13,6 +14,7 @@ class PlayerModel {
   final String name;
   final PlayerRole role;
   final String secretWord;
+  final String hint;
   final bool isEliminated;
 
   bool get isImposter => role == PlayerRole.imposter;
@@ -22,6 +24,7 @@ class PlayerModel {
     String? name,
     PlayerRole? role,
     String? secretWord,
+    String? hint,
     bool? isEliminated,
   }) {
     return PlayerModel(
@@ -29,6 +32,7 @@ class PlayerModel {
       name: name ?? this.name,
       role: role ?? this.role,
       secretWord: secretWord ?? this.secretWord,
+      hint: hint ?? this.hint,
       isEliminated: isEliminated ?? this.isEliminated,
     );
   }

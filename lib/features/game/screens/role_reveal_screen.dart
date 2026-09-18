@@ -1,6 +1,8 @@
+import 'package:find_the_imposter/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/game_controller.dart';
@@ -19,7 +21,13 @@ class RoleRevealScreen extends StatefulWidget {
 class _RoleRevealScreenState extends State<RoleRevealScreen> {
   bool _isSecretVisible = false;
 
+  void _toggleSecret() {
+    HapticFeedback.selectionClick();
+    setState(() => _isSecretVisible = !_isSecretVisible);
+  }
+
   void _onNext() {
+    HapticFeedback.lightImpact();
     setState(() => _isSecretVisible = false);
     widget.controller.advanceRoleReveal();
 
@@ -30,6 +38,8 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ListenableBuilder(
       listenable: widget.controller,
       builder: (context, _) {
@@ -52,90 +62,225 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
           ),
           body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Player Header
                   Column(
                     children: [
-                      Text(
-                        currentPlayer.name,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.surfaceDarkElevated
+                              : AppColors.surfaceLightElevated,
+                          shape: BoxShape.circle,
+                        ),
+                        child: FaIcon(
+                          FontAwesomeIcons.user,
+                          size: 28,
+                          color: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Pass the device to this player',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      const SizedBox(height: 14),
+                      Text(
+                        currentPlayer.name,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Pass device to this player only',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
                       ),
                     ],
                   ),
-                  GestureDetector(
-                    onTap: () =>
-                        setState(() => _isSecretVisible = !_isSecretVisible),
-                    child: AppCard(
-                      padding: const EdgeInsets.all(32),
-                      backgroundColor: _isSecretVisible
-                          ? (currentPlayer.isImposter
-                              ? AppColors.imposter.withValues(alpha: 0.15)
-                              : AppColors.primary.withValues(alpha: 0.15))
-                          : AppColors.surfaceDark,
-                      borderColor: _isSecretVisible
-                          ? (currentPlayer.isImposter
-                              ? AppColors.imposter
-                              : AppColors.primary)
-                          : AppColors.border,
+
+                  // Secret Reveal Card
+                  AppCard(
+                    onTap: _toggleSecret,
+                    padding: const EdgeInsets.all(28),
+                    borderColor: _isSecretVisible
+                        ? (currentPlayer.isImposter
+                            ? AppColors.imposter
+                            : AppColors.primary)
+                        : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    backgroundColor: _isSecretVisible
+                        ? (currentPlayer.isImposter
+                            ? (isDark
+                                ? AppColors.imposter.withValues(alpha: 0.15)
+                                : const Color(0xFFFDEDEC))
+                            : AppColors.primarySoft)
+                        : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            _isSecretVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off_outlined,
-                            size: 48,
-                            color: _isSecretVisible
-                                ? (currentPlayer.isImposter
-                                    ? AppColors.imposter
-                                    : AppColors.primary)
-                                : AppColors.textSecondary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _isSecretVisible
-                                ? (currentPlayer.isImposter
-                                    ? 'YOU ARE THE IMPOSTER!'
-                                    : currentPlayer.secretWord)
-                                : 'Tap to reveal secret word',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: _isSecretVisible ? 22 : 16,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
                               color: _isSecretVisible
-                                  ? (_currentPlayerColor(currentPlayer))
-                                  : AppColors.textSecondary,
+                                  ? (_currentPlayerColor(currentPlayer)
+                                      .withValues(alpha: 0.15))
+                                  : (isDark
+                                      ? AppColors.surfaceDarkElevated
+                                      : AppColors.surfaceLightElevated),
+                              shape: BoxShape.circle,
                             ),
-                          ),
-                          if (_isSecretVisible && !currentPlayer.isImposter) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              'Category: ${session.category}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
+                            child: Center(
+                              child: FaIcon(
+                                _isSecretVisible
+                                    ? (_isImposter(currentPlayer)
+                                        ? FontAwesomeIcons.userSecret
+                                        : FontAwesomeIcons.lightbulb)
+                                    : FontAwesomeIcons.eyeSlash,
+                                size: 24,
+                                color: _isSecretVisible
+                                    ? _currentPlayerColor(currentPlayer)
+                                    : (isDark
+                                        ? AppColors.textMutedDark
+                                        : AppColors.textMutedLight),
                               ),
                             ),
+                          ),
+                          const SizedBox(height: 18),
+                          if (!_isSecretVisible) ...[
+                            Text(
+                              'Tap to Reveal Secret',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Make sure nobody else is looking!',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ] else ...[
+                            if (currentPlayer.isImposter) ...[
+                              const Text(
+                                'YOU ARE THE IMPOSTER!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.imposter,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              if (currentPlayer.hint.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primarySoft,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: AppColors.primary.withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const FaIcon(
+                                        FontAwesomeIcons.lightbulb,
+                                        size: 14,
+                                        color: AppColors.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Hint: ${currentPlayer.hint}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'No hints enabled. Blend in carefully!',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
+                                  ),
+                                ),
+                            ] else ...[
+                              Text(
+                                currentPlayer.secretWord,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.surfaceDarkElevated
+                                      : AppColors.surfaceLightElevated,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Category: ${session.category}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ],
                       ),
                     ),
                   ),
+
+                  // Next Action Button
                   CustomButton(
                     label: session.currentRevealIndex + 1 == totalPlayers
                         ? 'Start Discussion'
                         : 'Next Player',
-                    icon: Icons.arrow_forward_rounded,
+                    icon: session.currentRevealIndex + 1 == totalPlayers
+                        ? FontAwesomeIcons.play
+                        : FontAwesomeIcons.arrowRight,
                     onPressed: _onNext,
                   ),
                 ],
@@ -147,7 +292,9 @@ class _RoleRevealScreenState extends State<RoleRevealScreen> {
     );
   }
 
+  bool _isImposter(PlayerModel player) => player.isImposter;
+
   Color _currentPlayerColor(PlayerModel player) {
-    return player.isImposter ? AppColors.imposter : AppColors.civilian;
+    return player.isImposter ? AppColors.imposter : AppColors.primary;
   }
 }
