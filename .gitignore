@@ -48,3 +48,4 @@ app.*.map.json
 .widget_preview/
 
 test/
+assets/play_store_assets/store_listing_copy.md
