@@ -140,19 +140,20 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Top Bar with Minimal Settings Button
-              Align(
-                alignment: Alignment.topRight,
-                child: BouncingScale(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
-                  child: Container(
+              // Top Bar with App Icon in Top Left and Settings Button in Top Right
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // App Icon in Top Left Corner
+                  Container(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                       ),
                       boxShadow: !isDark
                           ? [
@@ -164,17 +165,55 @@ class _HomeScreenState extends State<HomeScreen> {
                             ]
                           : null,
                     ),
-                    child: Center(
-                      child: FaIcon(
-                        FontAwesomeIcons.gear,
-                        size: 16,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: Image.asset(
+                        'assets/icons/app_icon_512.png',
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                ),
+
+                  // Minimal Settings Button
+                  BouncingScale(
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceDark
+                            : AppColors.surfaceLight,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.borderDark
+                              : AppColors.borderLight,
+                        ),
+                        boxShadow: !isDark
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: FaIcon(
+                          FontAwesomeIcons.gear,
+                          size: 16,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               // Hero Minimal Graphic & Title
