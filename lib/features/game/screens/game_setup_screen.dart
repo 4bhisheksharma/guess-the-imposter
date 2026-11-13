@@ -1,9 +1,10 @@
-import 'package:find_the_imposter/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/word_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/timer_helper.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/bouncing_scale.dart';
@@ -37,6 +38,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
     super.initState();
     _enableHints = widget.settingsController.enableImposterHints;
     _discussionTimerSeconds = widget.settingsController.discussionTimerSeconds;
+    _playerCount = widget.controller.playerNames.length.clamp(
+      AppConstants.minPlayers,
+      AppConstants.maxPlayers,
+    );
+    widget.controller.setPlayerCount(_playerCount);
     WordService.instance.loadWords();
   }
 
@@ -54,13 +60,138 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
         return FontAwesomeIcons.boxOpen;
       case 'briefcase':
         return FontAwesomeIcons.briefcase;
+      case 'house':
+        return FontAwesomeIcons.house;
+      case 'shapes':
+        return FontAwesomeIcons.shapes;
       default:
         return FontAwesomeIcons.dice;
     }
   }
 
+  void _showRenamePlayerDialog(int index) {
+    final currentName = widget.controller.playerNames[index];
+    final textController = TextEditingController(text: currentName);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor:
+              isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoftColor(isDark),
+                  shape: BoxShape.circle,
+                ),
+                child: const FaIcon(
+                  FontAwesomeIcons.penToSquare,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Rename Player ${index + 1}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                ),
+              ),
+            ],
+          ),
+          content: TextField(
+            controller: textController,
+            autofocus: true,
+            maxLength: 16,
+            textCapitalization: TextCapitalization.words,
+            style: TextStyle(
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
+              fontWeight: FontWeight.w600,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Enter name (e.g. Alice)',
+              hintStyle: TextStyle(
+                color:
+                    isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+              ),
+              counterStyle: TextStyle(
+                color:
+                    isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? AppColors.surfaceDarkElevated
+                  : AppColors.surfaceLightElevated,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+            onSubmitted: (val) {
+              widget.controller.setPlayerName(index, val);
+              Navigator.pop(dialogContext);
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textMutedDark
+                      : AppColors.textMutedLight,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                widget.controller.setPlayerName(index, textController.text);
+                Navigator.pop(dialogContext);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              ),
+              child: const Text('Save',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _onStartGame() {
-    final playerNames = List.generate(_playerCount, (i) => 'Player ${i + 1}');
+    final playerNames =
+        widget.controller.playerNames.take(_playerCount).toList();
     final wordEntry = WordService.instance.getRandomWord(_selectedCategoryId);
 
     String categoryName = 'All Categories';
@@ -89,336 +220,549 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: WordService.instance,
+      listenable: Listenable.merge([WordService.instance, widget.controller]),
       builder: (context, _) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         final categories = WordService.instance.categories;
         final totalWords = WordService.instance.totalWordCount;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Game Setup'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    // Category Selection Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Category',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySoft,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '$totalWords total words',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Game Setup'),
+          ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          physics: const BouncingScrollPhysics(),
+                          children: [
+                            // Category Selection Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Category',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primarySoftColor(isDark),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '$totalWords total words',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                            const SizedBox(height: 12),
 
-                    // Horizontal Category Pills
-                    SizedBox(
-                      height: 100,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          // "All Categories" Combined Option
-                          _buildCategoryCard(
-                            id: 'all',
-                            name: 'All Categories',
-                            icon: FontAwesomeIcons.dice,
-                            count: totalWords,
-                            isSelected: _selectedCategoryId == 'all',
-                          ),
-                          ...categories.map((cat) {
-                            return _buildCategoryCard(
-                              id: cat.id,
-                              name: cat.name,
-                              icon: _getCategoryIcon(cat.iconName),
-                              count: cat.wordCount,
-                              isSelected: _selectedCategoryId == cat.id,
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                            // Horizontal Category Pills
+                            SizedBox(
+                              height: 104,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                children: [
+                                  // "All Categories" Combined Option
+                                  _buildCategoryCard(
+                                    id: 'all',
+                                    name: 'All Categories',
+                                    icon: FontAwesomeIcons.dice,
+                                    count: totalWords,
+                                    isSelected: _selectedCategoryId == 'all',
+                                  ),
+                                  ...categories.map((cat) {
+                                    return _buildCategoryCard(
+                                      id: cat.id,
+                                      name: cat.name,
+                                      icon: _getCategoryIcon(cat.iconName),
+                                      count: cat.wordCount,
+                                      isSelected: _selectedCategoryId == cat.id,
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
 
-                    // Player Count
-                    _buildCounterCard(
-                      title: 'Players',
-                      subtitle: 'Participants in this match',
-                      icon: FontAwesomeIcons.users,
-                      value: _playerCount,
-                      minValue: AppConstants.minPlayers,
-                      maxValue: AppConstants.maxPlayers,
-                      onChanged: (val) {
-                        setState(() {
-                          _playerCount = val;
-                          if (_imposterCount >= _playerCount) {
-                            _imposterCount = _playerCount - 1;
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 14),
+                            // Player Count Counter
+                            _buildCounterCard(
+                              title: 'Players',
+                              subtitle: 'Participants in this match',
+                              icon: FontAwesomeIcons.users,
+                              value: _playerCount,
+                              minValue: AppConstants.minPlayers,
+                              maxValue: AppConstants.maxPlayers,
+                              onChanged: (val) {
+                                setState(() {
+                                  _playerCount = val;
+                                  if (_imposterCount >= _playerCount) {
+                                    _imposterCount = _playerCount - 1;
+                                  }
+                                });
+                                widget.controller.setPlayerCount(val);
+                              },
+                            ),
+                            const SizedBox(height: 14),
 
-                    // Imposter Count
-                    _buildCounterCard(
-                      title: 'Imposters',
-                      subtitle: 'Hidden deceivers',
-                      icon: FontAwesomeIcons.userSecret,
-                      value: _imposterCount,
-                      minValue: AppConstants.minImposters,
-                      maxValue: (_playerCount - 1).clamp(1, 5),
-                      onChanged: (val) => setState(() => _imposterCount = val),
-                    ),
-                    const SizedBox(height: 14),
+                            // Player Names Card (Renaming support)
+                            _buildPlayerNamesCard(isDark),
+                            const SizedBox(height: 14),
 
-                    // Discussion Timer Card
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
+                            // Imposter Count Counter
+                            _buildCounterCard(
+                              title: 'Imposters',
+                              subtitle: 'Hidden deceivers',
+                              icon: FontAwesomeIcons.userSecret,
+                              value: _imposterCount,
+                              minValue: AppConstants.minImposters,
+                              maxValue: (_playerCount - 1).clamp(1, 5),
+                              onChanged: (val) =>
+                                  setState(() => _imposterCount = val),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Discussion Timer Card
+                            AppCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: isDark
+                                                  ? AppColors
+                                                      .surfaceDarkElevated
+                                                  : AppColors
+                                                      .surfaceLightElevated,
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            child: const Center(
+                                              child: FaIcon(
+                                                FontAwesomeIcons.stopwatch,
+                                                size: 16,
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 14),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Discussion Time',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark
+                                                      ? AppColors
+                                                          .textPrimaryDark
+                                                      : AppColors
+                                                          .textPrimaryLight,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Timer for debate & clues',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: isDark
+                                                      ? AppColors
+                                                          .textSecondaryDark
+                                                      : AppColors
+                                                          .textSecondaryLight,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          BouncingScale(
+                                            onTap: _discussionTimerSeconds > 30
+                                                ? () => setState(() =>
+                                                    _discussionTimerSeconds -=
+                                                        30)
+                                                : null,
+                                            child: Container(
+                                              width: 38,
+                                              height: 38,
+                                              decoration: BoxDecoration(
+                                                color: _discussionTimerSeconds >
+                                                        30
+                                                    ? AppColors
+                                                        .primarySoftColor(
+                                                            isDark)
+                                                    : (isDark
+                                                        ? AppColors
+                                                            .surfaceDarkElevated
+                                                        : AppColors
+                                                            .surfaceLightElevated),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: FaIcon(
+                                                  FontAwesomeIcons.minus,
+                                                  size: 12,
+                                                  color:
+                                                      _discussionTimerSeconds >
+                                                              30
+                                                          ? AppColors.primary
+                                                          : (isDark
+                                                              ? AppColors
+                                                                  .textMutedDark
+                                                              : AppColors
+                                                                  .textMutedLight),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10),
+                                            child: Text(
+                                              TimerHelper.formatDuration(
+                                                  _discussionTimerSeconds),
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark
+                                                    ? AppColors.textPrimaryDark
+                                                    : AppColors
+                                                        .textPrimaryLight,
+                                              ),
+                                            ),
+                                          ),
+                                          BouncingScale(
+                                            onTap: _discussionTimerSeconds < 600
+                                                ? () => setState(() =>
+                                                    _discussionTimerSeconds +=
+                                                        30)
+                                                : null,
+                                            child: Container(
+                                              width: 38,
+                                              height: 38,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    _discussionTimerSeconds <
+                                                            600
+                                                        ? AppColors.primary
+                                                        : (isDark
+                                                            ? AppColors
+                                                                .surfaceDarkElevated
+                                                            : AppColors
+                                                                .surfaceLightElevated),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: FaIcon(
+                                                  FontAwesomeIcons.plus,
+                                                  size: 12,
+                                                  color:
+                                                      _discussionTimerSeconds <
+                                                              600
+                                                          ? Colors.white
+                                                          : (isDark
+                                                              ? AppColors
+                                                                  .textMutedDark
+                                                              : AppColors
+                                                                  .textMutedLight),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  // Preset Pills
+                                  Row(
+                                    children: [
+                                      _buildTimerPresetChip('1 min', 60),
+                                      const SizedBox(width: 8),
+                                      _buildTimerPresetChip('2 min', 120),
+                                      const SizedBox(width: 8),
+                                      _buildTimerPresetChip('3 min', 180),
+                                      const SizedBox(width: 8),
+                                      _buildTimerPresetChip('5 min', 300),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Imposter Single-Word Hint Toggle Card
+                            AppCard(
+                              child: Row(
                                 children: [
                                   Container(
                                     width: 44,
                                     height: 44,
                                     decoration: BoxDecoration(
-                                      color: isDark
-                                          ? AppColors.surfaceDarkElevated
-                                          : AppColors.surfaceLightElevated,
+                                      color: _enableHints
+                                          ? AppColors.primarySoftColor(isDark)
+                                          : (isDark
+                                              ? AppColors.surfaceDarkElevated
+                                              : AppColors.surfaceLightElevated),
                                       borderRadius: BorderRadius.circular(14),
                                     ),
-                                    child: const Center(
+                                    child: Center(
                                       child: FaIcon(
-                                        FontAwesomeIcons.stopwatch,
-                                        size: 16,
-                                        color: AppColors.primary,
+                                        FontAwesomeIcons.lightbulb,
+                                        size: 18,
+                                        color: _enableHints
+                                            ? AppColors.primary
+                                            : (isDark
+                                                ? AppColors.textMutedDark
+                                                : AppColors.textMutedLight),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 14),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Discussion Time',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Imposter Hint',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: isDark
+                                                ? AppColors.textPrimaryDark
+                                                : AppColors.textPrimaryLight,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        'Timer for debate & clues',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isDark
-                                              ? AppColors.textSecondaryDark
-                                              : AppColors.textSecondaryLight,
+                                        Text(
+                                          _enableHints
+                                              ? 'Imposter receives a 1-word clue'
+                                              : 'Hardcore mode (no hints)',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: _enableHints,
+                                    onChanged: (val) =>
+                                        setState(() => _enableHints = val),
                                   ),
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  BouncingScale(
-                                    onTap: _discussionTimerSeconds > 30
-                                        ? () => setState(
-                                            () => _discussionTimerSeconds -= 30)
-                                        : null,
-                                    child: Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: _discussionTimerSeconds > 30
-                                            ? AppColors.primarySoft
-                                            : (isDark
-                                                ? AppColors.surfaceDarkElevated
-                                                : AppColors.surfaceLightElevated),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: FaIcon(
-                                          FontAwesomeIcons.minus,
-                                          size: 12,
-                                          color: _discussionTimerSeconds > 30
-                                              ? AppColors.primary
-                                              : (isDark
-                                                  ? AppColors.textMutedDark
-                                                  : AppColors.textMutedLight),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: Text(
-                                      TimerHelper.formatDuration(
-                                          _discussionTimerSeconds),
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  BouncingScale(
-                                    onTap: _discussionTimerSeconds < 600
-                                        ? () => setState(
-                                            () => _discussionTimerSeconds += 30)
-                                        : null,
-                                    child: Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: _discussionTimerSeconds < 600
-                                            ? AppColors.primary
-                                            : (isDark
-                                                ? AppColors.surfaceDarkElevated
-                                                : AppColors.surfaceLightElevated),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: FaIcon(
-                                          FontAwesomeIcons.plus,
-                                          size: 12,
-                                          color: _discussionTimerSeconds < 600
-                                              ? Colors.white
-                                              : (isDark
-                                                  ? AppColors.textMutedDark
-                                                  : AppColors.textMutedLight),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          // Preset Pills
-                          Row(
-                            children: [
-                              _buildTimerPresetChip('1 min', 60),
-                              const SizedBox(width: 8),
-                              _buildTimerPresetChip('2 min', 120),
-                              const SizedBox(width: 8),
-                              _buildTimerPresetChip('3 min', 180),
-                              const SizedBox(width: 8),
-                              _buildTimerPresetChip('5 min', 300),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 12),
+                      CustomButton(
+                        label: 'Start Game',
+                        icon: FontAwesomeIcons.play,
+                        onPressed: _onStartGame,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-                    // Imposter Single-Word Hint Toggle Card
-                    AppCard(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: _enableHints
-                                  ? AppColors.primarySoft
-                                  : (isDark
-                                      ? AppColors.surfaceDarkElevated
-                                      : AppColors.surfaceLightElevated),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Center(
-                              child: FaIcon(
-                                FontAwesomeIcons.lightbulb,
-                                size: 18,
-                                color: _enableHints
-                                    ? AppColors.primary
-                                    : (isDark
-                                        ? AppColors.textMutedDark
-                                        : AppColors.textMutedLight),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Imposter Hint',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  _enableHints
-                                      ? 'Imposter receives a 1-word clue'
-                                      : 'Hardcore mode (no hints)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: _enableHints,
-                            onChanged: (val) =>
-                                setState(() => _enableHints = val),
-                          ),
-                        ],
+  Widget _buildPlayerNamesCard(bool isDark) {
+    final playerNames =
+        widget.controller.playerNames.take(_playerCount).toList();
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoftColor(isDark),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.userPen,
+                        size: 16,
+                        color: AppColors.primary,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Player Names',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      Text(
+                        'Tap name to rename player',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              CustomButton(
-                label: 'Start Game',
-                icon: FontAwesomeIcons.play,
-                onPressed: _onStartGame,
+              TextButton(
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  widget.controller.resetPlayerNames();
+                },
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Reset',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.textMutedDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(playerNames.length, (i) {
+              final name = playerNames[i];
+              return BouncingScale(
+                onTap: () => _showRenamePlayerDialog(i),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceDarkElevated
+                        : AppColors.surfaceLightElevated,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color:
+                          isDark ? AppColors.borderDark : AppColors.borderLight,
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${i + 1}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 110),
+                        child: Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      FaIcon(
+                        FontAwesomeIcons.pen,
+                        size: 10,
+                        color: isDark
+                            ? AppColors.textMutedDark
+                            : AppColors.textMutedLight,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
-    );
-      },
     );
   }
 
@@ -480,7 +824,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOutCubic,
-        width: 124,
+        width: 126,
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -529,7 +873,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white70 : AppColors.textMutedLight,
+                    color: isSelected
+                        ? Colors.white70
+                        : (isDark
+                            ? AppColors.textMutedDark
+                            : AppColors.textSecondaryLight),
                   ),
                 ),
               ],
@@ -594,9 +942,12 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   Text(
@@ -621,7 +972,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                   height: 38,
                   decoration: BoxDecoration(
                     color: value > minValue
-                        ? AppColors.primarySoft
+                        ? AppColors.primarySoftColor(isDark)
                         : (isDark
                             ? AppColors.surfaceDarkElevated
                             : AppColors.surfaceLightElevated),
@@ -644,9 +995,12 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Text(
                   '$value',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),

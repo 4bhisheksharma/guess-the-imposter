@@ -72,6 +72,64 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shouldQuit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor:
+            isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Leave Game?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to end this game and return to the main menu?',
+          style: TextStyle(
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Resume Game',
+              style: TextStyle(
+                color:
+                    isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              widget.controller.resetGame();
+              Navigator.pop(context, true);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.imposter,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Exit Game',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+    return shouldQuit ?? false;
+  }
+
   void _onEliminate() {
     if (_selectedPlayerId == null) return;
     HapticFeedback.heavyImpact();
@@ -84,118 +142,216 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final session = widget.controller.session;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discussion & Vote'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            children: [
-              TimerDisplay(
-                remainingSeconds: _remainingSeconds,
-                totalSeconds: session.discussionDurationSeconds,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldQuit = await _onWillPop();
+        if (shouldQuit && context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+              context, AppRoutes.home, (route) => false);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Discussion & Vote'),
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              tooltip: 'Exit Game',
+              icon: FaIcon(
+                FontAwesomeIcons.arrowRightFromBracket,
+                size: 16,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
-              const SizedBox(height: 10),
-              // Compact Quick Timer Controls (Pause/Play & +30s)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton.icon(
-                    onPressed: _togglePause,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      backgroundColor: isDark
-                          ? AppColors.surfaceDarkElevated
-                          : AppColors.surfaceLightElevated,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+              onPressed: () async {
+                final shouldQuit = await _onWillPop();
+                if (shouldQuit && context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, AppRoutes.home, (route) => false);
+                }
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompactScreen = constraints.maxHeight < 640;
+
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Column(
+                  children: [
+                    // Timer Widget
+                    TimerDisplay(
+                      remainingSeconds: _remainingSeconds,
+                      totalSeconds: session.discussionDurationSeconds,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Quick Timer Controls (Pause/Play & +30s)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _togglePause,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            backgroundColor: isDark
+                                ? AppColors.surfaceDarkElevated
+                                : AppColors.surfaceLightElevated,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          icon: FaIcon(
+                            _isPaused
+                                ? FontAwesomeIcons.play
+                                : FontAwesomeIcons.pause,
+                            size: 11,
+                            color: AppColors.primary,
+                          ),
+                          label: Text(
+                            _isPaused ? 'Resume' : 'Pause',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        TextButton.icon(
+                          onPressed: _add30Seconds,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            backgroundColor: isDark
+                                ? AppColors.surfaceDarkElevated
+                                : AppColors.surfaceLightElevated,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          icon: const FaIcon(
+                            FontAwesomeIcons.plus,
+                            size: 10,
+                            color: AppColors.primary,
+                          ),
+                          label: const Text(
+                            '+30s',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (_remainingSeconds == 0) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.imposter.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.imposter.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FaIcon(FontAwesomeIcons.triangleExclamation,
+                                size: 12, color: AppColors.imposter),
+                            SizedBox(width: 6),
+                            Text(
+                              "Time's Up! Cast your vote now!",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.imposter,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    SizedBox(height: isCompactScreen ? 8 : 14),
+
+                    // Section Title
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Who is acting suspicious?',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        Text(
+                          'Select to vote',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.textMutedDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Players List
+                    Expanded(
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: session.players.length,
+                        separatorBuilder: (_, index) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final player = session.players[index];
+                          return PlayerCard(
+                            player: player,
+                            isSelected: _selectedPlayerId == player.id,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() {
+                                _selectedPlayerId = player.id;
+                              });
+                            },
+                          );
+                        },
                       ),
                     ),
-                    icon: FaIcon(
-                      _isPaused
-                          ? FontAwesomeIcons.play
-                          : FontAwesomeIcons.pause,
-                      size: 11,
-                      color: AppColors.primary,
+                    const SizedBox(height: 12),
+
+                    // Action Button
+                    CustomButton(
+                      label: _selectedPlayerId != null
+                          ? 'Vote to Eliminate'
+                          : 'Select a Player to Eliminate',
+                      icon: FontAwesomeIcons.gavel,
+                      onPressed:
+                          _selectedPlayerId != null ? _onEliminate : null,
                     ),
-                    label: Text(
-                      _isPaused ? 'Resume' : 'Pause',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  TextButton.icon(
-                    onPressed: _add30Seconds,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      backgroundColor: isDark
-                          ? AppColors.surfaceDarkElevated
-                          : AppColors.surfaceLightElevated,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    icon: const FaIcon(
-                      FontAwesomeIcons.plus,
-                      size: 10,
-                      color: AppColors.primary,
-                    ),
-                    label: const Text(
-                      '+30s',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'Who is acting suspicious?',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: session.players.length,
-                  separatorBuilder: (_, index) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final player = session.players[index];
-                    return PlayerCard(
-                      player: player,
-                      isSelected: _selectedPlayerId == player.id,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() {
-                          _selectedPlayerId = player.id;
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-              CustomButton(
-                label: 'Vote to Eliminate',
-                icon: FontAwesomeIcons.gavel,
-                onPressed: _selectedPlayerId != null ? _onEliminate : null,
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

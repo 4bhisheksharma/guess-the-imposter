@@ -19,6 +19,7 @@ class GameSession {
     this.currentRevealIndex = 0,
     this.phase = GamePhase.setup,
     this.discussionDurationSeconds = 180,
+    this.lastEliminatedPlayerId,
   });
 
   final List<PlayerModel> players;
@@ -30,6 +31,7 @@ class GameSession {
   final int currentRevealIndex;
   final GamePhase phase;
   final int discussionDurationSeconds;
+  final String? lastEliminatedPlayerId;
 
   PlayerModel? get currentRevealPlayer {
     if (currentRevealIndex < players.length) {
@@ -46,6 +48,20 @@ class GameSession {
   List<PlayerModel> get civilians =>
       players.where((p) => !p.isImposter).toList();
 
+  PlayerModel? get lastEliminatedPlayer {
+    if (lastEliminatedPlayerId == null) return null;
+    try {
+      return players.firstWhere((p) => p.id == lastEliminatedPlayerId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get allImpostersEliminated =>
+      imposters.isNotEmpty && imposters.every((p) => p.isEliminated);
+
+  bool get civiliansWon => allImpostersEliminated;
+
   GameSession copyWith({
     List<PlayerModel>? players,
     String? category,
@@ -56,6 +72,7 @@ class GameSession {
     int? currentRevealIndex,
     GamePhase? phase,
     int? discussionDurationSeconds,
+    String? lastEliminatedPlayerId,
   }) {
     return GameSession(
       players: players ?? this.players,
@@ -68,6 +85,8 @@ class GameSession {
       phase: phase ?? this.phase,
       discussionDurationSeconds:
           discussionDurationSeconds ?? this.discussionDurationSeconds,
+      lastEliminatedPlayerId:
+          lastEliminatedPlayerId ?? this.lastEliminatedPlayerId,
     );
   }
 }

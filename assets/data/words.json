@@ -5301,6 +5301,537 @@
           "hint": "Window-panes"
         }
       ]
+    },
+    {
+      "id": "simple_words",
+      "name": "Simple Words",
+      "icon": "house",
+      "words": [
+        {
+          "word": "Chair",
+          "hint": "Sit"
+        },
+        {
+          "word": "Table",
+          "hint": "Furniture"
+        },
+        {
+          "word": "Bed",
+          "hint": "Sleep"
+        },
+        {
+          "word": "Pillow",
+          "hint": "Soft"
+        },
+        {
+          "word": "Blanket",
+          "hint": "Warm"
+        },
+        {
+          "word": "Door",
+          "hint": "Knob"
+        },
+        {
+          "word": "Window",
+          "hint": "Glass"
+        },
+        {
+          "word": "Clock",
+          "hint": "Time"
+        },
+        {
+          "word": "Mirror",
+          "hint": "Reflect"
+        },
+        {
+          "word": "Lamp",
+          "hint": "Light"
+        },
+        {
+          "word": "Curtain",
+          "hint": "Window"
+        },
+        {
+          "word": "Carpet",
+          "hint": "Floor"
+        },
+        {
+          "word": "Sofa",
+          "hint": "Couch"
+        },
+        {
+          "word": "Fan",
+          "hint": "Breeze"
+        },
+        {
+          "word": "Cup",
+          "hint": "Drink"
+        },
+        {
+          "word": "Plate",
+          "hint": "Food"
+        },
+        {
+          "word": "Bowl",
+          "hint": "Cereal"
+        },
+        {
+          "word": "Spoon",
+          "hint": "Soup"
+        },
+        {
+          "word": "Fork",
+          "hint": "Prongs"
+        },
+        {
+          "word": "Knife",
+          "hint": "Cut"
+        },
+        {
+          "word": "Bottle",
+          "hint": "Cap"
+        },
+        {
+          "word": "Mug",
+          "hint": "Coffee"
+        },
+        {
+          "word": "Pan",
+          "hint": "Fry"
+        },
+        {
+          "word": "Pot",
+          "hint": "Boil"
+        },
+        {
+          "word": "Kettle",
+          "hint": "Tea"
+        },
+        {
+          "word": "Towel",
+          "hint": "Dry"
+        },
+        {
+          "word": "Soap",
+          "hint": "Clean"
+        },
+        {
+          "word": "Toothbrush",
+          "hint": "Teeth"
+        },
+        {
+          "word": "Toothpaste",
+          "hint": "Mint"
+        },
+        {
+          "word": "Comb",
+          "hint": "Hair"
+        },
+        {
+          "word": "Shampoo",
+          "hint": "Lather"
+        },
+        {
+          "word": "Bucket",
+          "hint": "Water"
+        },
+        {
+          "word": "Broom",
+          "hint": "Sweep"
+        },
+        {
+          "word": "Mop",
+          "hint": "Floor"
+        },
+        {
+          "word": "Shoes",
+          "hint": "Feet"
+        },
+        {
+          "word": "Socks",
+          "hint": "Feet"
+        },
+        {
+          "word": "Slippers",
+          "hint": "House"
+        },
+        {
+          "word": "Shirt",
+          "hint": "Button"
+        },
+        {
+          "word": "Pants",
+          "hint": "Legs"
+        },
+        {
+          "word": "Jacket",
+          "hint": "Coat"
+        },
+        {
+          "word": "Hat",
+          "hint": "Head"
+        },
+        {
+          "word": "Cap",
+          "hint": "Visor"
+        },
+        {
+          "word": "Gloves",
+          "hint": "Hands"
+        },
+        {
+          "word": "Scarf",
+          "hint": "Neck"
+        },
+        {
+          "word": "Belt",
+          "hint": "Waist"
+        },
+        {
+          "word": "Umbrella",
+          "hint": "Rain"
+        },
+        {
+          "word": "Raincoat",
+          "hint": "Puddle"
+        },
+        {
+          "word": "Backpack",
+          "hint": "Bag"
+        },
+        {
+          "word": "Wallet",
+          "hint": "Money"
+        },
+        {
+          "word": "Purse",
+          "hint": "Handbag"
+        },
+        {
+          "word": "Keys",
+          "hint": "Lock"
+        },
+        {
+          "word": "Lock",
+          "hint": "Key"
+        },
+        {
+          "word": "Watch",
+          "hint": "Wrist"
+        },
+        {
+          "word": "Glasses",
+          "hint": "Eyes"
+        },
+        {
+          "word": "Sunglasses",
+          "hint": "Shade"
+        },
+        {
+          "word": "Ring",
+          "hint": "Finger"
+        },
+        {
+          "word": "Necklace",
+          "hint": "Jewelry"
+        },
+        {
+          "word": "Bracelet",
+          "hint": "Wrist"
+        },
+        {
+          "word": "Book",
+          "hint": "Pages"
+        },
+        {
+          "word": "Notebook",
+          "hint": "Notes"
+        },
+        {
+          "word": "Pen",
+          "hint": "Ink"
+        },
+        {
+          "word": "Pencil",
+          "hint": "Graphite"
+        },
+        {
+          "word": "Eraser",
+          "hint": "Mistake"
+        },
+        {
+          "word": "Ruler",
+          "hint": "Measure"
+        },
+        {
+          "word": "Scissors",
+          "hint": "Cut"
+        },
+        {
+          "word": "Glue",
+          "hint": "Stick"
+        },
+        {
+          "word": "Paper",
+          "hint": "Sheet"
+        },
+        {
+          "word": "Envelope",
+          "hint": "Letter"
+        },
+        {
+          "word": "Box",
+          "hint": "Cardboard"
+        },
+        {
+          "word": "Tape",
+          "hint": "Sticky"
+        },
+        {
+          "word": "Stapler",
+          "hint": "Paper"
+        },
+        {
+          "word": "Clip",
+          "hint": "Hold"
+        },
+        {
+          "word": "Phone",
+          "hint": "Call"
+        },
+        {
+          "word": "Charger",
+          "hint": "Plug"
+        },
+        {
+          "word": "Headphones",
+          "hint": "Music"
+        },
+        {
+          "word": "Remote",
+          "hint": "Buttons"
+        },
+        {
+          "word": "Battery",
+          "hint": "Power"
+        },
+        {
+          "word": "Flashlight",
+          "hint": "Torch"
+        },
+        {
+          "word": "Bicycle",
+          "hint": "Pedal"
+        },
+        {
+          "word": "Helmet",
+          "hint": "Protection"
+        },
+        {
+          "word": "Ball",
+          "hint": "Bounce"
+        },
+        {
+          "word": "Whistle",
+          "hint": "Sound"
+        },
+        {
+          "word": "Ladder",
+          "hint": "Climb"
+        },
+        {
+          "word": "Hammer",
+          "hint": "Nail"
+        },
+        {
+          "word": "Nail",
+          "hint": "Metal"
+        },
+        {
+          "word": "Screw",
+          "hint": "Turn"
+        },
+        {
+          "word": "Screwdriver",
+          "hint": "Tool"
+        },
+        {
+          "word": "Pliers",
+          "hint": "Grip"
+        },
+        {
+          "word": "Tape Measure",
+          "hint": "Length"
+        },
+        {
+          "word": "Candle",
+          "hint": "Flame"
+        },
+        {
+          "word": "Matchbox",
+          "hint": "Fire"
+        },
+        {
+          "word": "Lighter",
+          "hint": "Spark"
+        },
+        {
+          "word": "Vase",
+          "hint": "Flowers"
+        },
+        {
+          "word": "Flowerpot",
+          "hint": "Plant"
+        },
+        {
+          "word": "Trash Can",
+          "hint": "Garbage"
+        },
+        {
+          "word": "Calendar",
+          "hint": "Date"
+        },
+        {
+          "word": "Coin",
+          "hint": "Silver"
+        },
+        {
+          "word": "Stamp",
+          "hint": "Mail"
+        },
+        {
+          "word": "Newspaper",
+          "hint": "News"
+        },
+        {
+          "word": "Magazine",
+          "hint": "Cover"
+        },
+        {
+          "word": "Iron",
+          "hint": "Clothes"
+        },
+        {
+          "word": "Hanger",
+          "hint": "Closet"
+        },
+        {
+          "word": "Washing Machine",
+          "hint": "Laundry"
+        },
+        {
+          "word": "Refrigerator",
+          "hint": "Cold"
+        },
+        {
+          "word": "Oven",
+          "hint": "Bake"
+        },
+        {
+          "word": "Microwave",
+          "hint": "Heat"
+        },
+        {
+          "word": "Toaster",
+          "hint": "Bread"
+        },
+        {
+          "word": "Blender",
+          "hint": "Smoothie"
+        },
+        {
+          "word": "Sink",
+          "hint": "Faucet"
+        },
+        {
+          "word": "Shower",
+          "hint": "Water"
+        },
+        {
+          "word": "Bathtub",
+          "hint": "Soak"
+        },
+        {
+          "word": "Pillowcase",
+          "hint": "Cushion"
+        },
+        {
+          "word": "Tissue",
+          "hint": "Wipe"
+        },
+        {
+          "word": "Napkin",
+          "hint": "Table"
+        },
+        {
+          "word": "Thermometer",
+          "hint": "Temperature"
+        },
+        {
+          "word": "Bandage",
+          "hint": "Wound"
+        },
+        {
+          "word": "Guitar",
+          "hint": "Strings"
+        },
+        {
+          "word": "Piano",
+          "hint": "Keys"
+        },
+        {
+          "word": "Dice",
+          "hint": "Roll"
+        },
+        {
+          "word": "Cards",
+          "hint": "Deck"
+        },
+        {
+          "word": "Puzzle",
+          "hint": "Pieces"
+        },
+        {
+          "word": "Teddy Bear",
+          "hint": "Plush"
+        },
+        {
+          "word": "Doll",
+          "hint": "Toy"
+        },
+        {
+          "word": "Kite",
+          "hint": "Wind"
+        },
+        {
+          "word": "Balloon",
+          "hint": "Air"
+        },
+        {
+          "word": "Camera",
+          "hint": "Photo"
+        },
+        {
+          "word": "Suitcase",
+          "hint": "Travel"
+        },
+        {
+          "word": "Passport",
+          "hint": "Travel"
+        },
+        {
+          "word": "Ticket",
+          "hint": "Entry"
+        },
+        {
+          "word": "Map",
+          "hint": "Directions"
+        },
+        {
+          "word": "Compass",
+          "hint": "North"
+        }
+      ]
     }
   ]
 }

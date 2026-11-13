@@ -183,7 +183,7 @@ class SettingsScreen extends StatelessWidget {
                                 width: 42,
                                 height: 42,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primarySoft,
+                                  color: AppColors.primarySoftColor(isDark),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Center(
@@ -198,11 +198,14 @@ class SettingsScreen extends StatelessWidget {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Discussion Time',
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight,
                                     ),
                                   ),
                                   Text(
@@ -230,7 +233,7 @@ class SettingsScreen extends StatelessWidget {
                                   height: 36,
                                   decoration: BoxDecoration(
                                     color: controller.discussionTimerSeconds > 30
-                                        ? AppColors.primarySoft
+                                        ? AppColors.primarySoftColor(isDark)
                                         : (isDark
                                             ? AppColors.surfaceDarkElevated
                                             : AppColors.surfaceLightElevated),
@@ -256,9 +259,12 @@ class SettingsScreen extends StatelessWidget {
                                 child: Text(
                                   TimerHelper.formatDuration(
                                       controller.discussionTimerSeconds),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
                                   ),
                                 ),
                               ),
@@ -341,11 +347,14 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Low Time Warning',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                             Text(
@@ -383,7 +392,7 @@ class SettingsScreen extends StatelessWidget {
                         height: 42,
                         decoration: BoxDecoration(
                           color: controller.enableImposterHints
-                              ? AppColors.primarySoft
+                              ? AppColors.primarySoftColor(isDark)
                               : (isDark
                                   ? AppColors.surfaceDarkElevated
                                   : AppColors.surfaceLightElevated),
@@ -406,11 +415,14 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Imposter Clues',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                             Text(
@@ -461,11 +473,14 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Hold to Peek Secret',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                             Text(
@@ -519,11 +534,14 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Sound Effects',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                             Text(
@@ -574,11 +592,14 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Haptic Feedback',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                             Text(

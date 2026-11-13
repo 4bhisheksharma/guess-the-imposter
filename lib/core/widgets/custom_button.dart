@@ -12,6 +12,7 @@ class CustomButton extends StatelessWidget {
     this.icon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.isLoading = false,
     this.height = 54.0,
     this.borderRadius = 20.0,
@@ -22,6 +23,7 @@ class CustomButton extends StatelessWidget {
   final FaIconData? icon;
   final Color? backgroundColor;
   final Color? textColor;
+  final Color? borderColor;
   final bool isLoading;
   final double height;
   final double borderRadius;
@@ -39,6 +41,9 @@ class CustomButton extends StatelessWidget {
             ? defaultBg.withValues(alpha: 0.5)
             : defaultBg,
         borderRadius: BorderRadius.circular(borderRadius),
+        border: borderColor != null
+            ? Border.all(color: borderColor!, width: 1.2)
+            : null,
         boxShadow: onPressed != null && backgroundColor == null
             ? [
                 BoxShadow(

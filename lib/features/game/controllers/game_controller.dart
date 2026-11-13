@@ -1,13 +1,50 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import '../../../core/constants/app_constants.dart';
 import '../models/game_session.dart';
 import '../models/player_model.dart';
 
 /// Game controller managing state transitions, player roles, and imposter hints
 class GameController extends ChangeNotifier {
   GameSession _session = const GameSession();
+  List<String> _playerNames = List.generate(
+    AppConstants.defaultPlayersCount,
+    (i) => 'Player ${i + 1}',
+  );
 
   GameSession get session => _session;
+  List<String> get playerNames => List.unmodifiable(_playerNames);
+
+  /// Updates or renames a player at the specified index
+  void setPlayerName(int index, String newName) {
+    if (index >= 0 && index < _playerNames.length) {
+      final trimmed = newName.trim();
+      _playerNames[index] = trimmed.isEmpty ? 'Player ${index + 1}' : trimmed;
+      notifyListeners();
+    }
+  }
+
+  /// Adjusts the player count while preserving any custom names entered
+  void setPlayerCount(int count) {
+    final clamped = count.clamp(AppConstants.minPlayers, AppConstants.maxPlayers);
+    if (clamped > _playerNames.length) {
+      for (int i = _playerNames.length; i < clamped; i++) {
+        _playerNames.add('Player ${i + 1}');
+      }
+    } else if (clamped < _playerNames.length) {
+      _playerNames = _playerNames.sublist(0, clamped);
+    }
+    notifyListeners();
+  }
+
+  /// Resets player names back to defaults ('Player 1', 'Player 2', etc.)
+  void resetPlayerNames() {
+    _playerNames = List.generate(
+      _playerNames.length.clamp(AppConstants.minPlayers, AppConstants.maxPlayers),
+      (i) => 'Player ${i + 1}',
+    );
+    notifyListeners();
+  }
 
   /// Starts a new game session with cryptographically random assigned roles
   void startNewGame({
@@ -19,6 +56,7 @@ class GameController extends ChangeNotifier {
     bool imposterHintEnabled = true,
     int discussionDurationSeconds = 180,
   }) {
+    _playerNames = List.from(playerNames);
     final random = Random.secure();
     final totalPlayers = playerNames.length;
     final clampedImposters = imposterCount.clamp(1, totalPlayers - 1);
@@ -84,12 +122,13 @@ class GameController extends ChangeNotifier {
 
     _session = _session.copyWith(
       players: updatedPlayers,
+      lastEliminatedPlayerId: playerId,
       phase: GamePhase.gameOver,
     );
     notifyListeners();
   }
 
-  /// Resets back to game setup
+  /// Resets back to game setup while preserving remembered player names
   void resetGame() {
     _session = const GameSession();
     notifyListeners();

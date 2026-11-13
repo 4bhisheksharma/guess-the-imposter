@@ -133,5 +133,18 @@ class WordService extends ChangeNotifier {
         WordEntry(word: 'Dolphin', hint: 'Ocean'),
       ],
     ),
+    const WordCategory(
+      id: 'simple_words',
+      name: 'Simple Words',
+      iconName: 'house',
+      words: [
+        WordEntry(word: 'Chair', hint: 'Sit'),
+        WordEntry(word: 'Table', hint: 'Furniture'),
+        WordEntry(word: 'Clock', hint: 'Time'),
+        WordEntry(word: 'Mirror', hint: 'Reflect'),
+        WordEntry(word: 'Book', hint: 'Pages'),
+        WordEntry(word: 'Shoes', hint: 'Feet'),
+      ],
+    ),
   ];
 }

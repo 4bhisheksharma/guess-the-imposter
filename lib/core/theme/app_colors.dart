@@ -34,6 +34,28 @@ class AppColors {
   static const Color civilian = Color(0xFF27AE60);
   static const Color hint = Color(0xFFF39C12);
 
+  // Dynamic helpers for light / dark modes
+  static Color primarySoftColor(bool isDark) =>
+      isDark ? primarySoftDark : primarySoft;
+
+  static Color textPrimaryColor(bool isDark) =>
+      isDark ? textPrimaryDark : textPrimaryLight;
+
+  static Color textSecondaryColor(bool isDark) =>
+      isDark ? textSecondaryDark : textSecondaryLight;
+
+  static Color textMutedColor(bool isDark) =>
+      isDark ? textMutedDark : textMutedLight;
+
+  static Color surfaceColor(bool isDark) =>
+      isDark ? surfaceDark : surfaceLight;
+
+  static Color surfaceElevatedColor(bool isDark) =>
+      isDark ? surfaceDarkElevated : surfaceLightElevated;
+
+  static Color borderColor(bool isDark) =>
+      isDark ? borderDark : borderLight;
+
   // Legacy mappings for backwards compatibility
   static const Color secondary = Color(0xFFFF7675);
   static const Color accent = Color(0xFFF38318);

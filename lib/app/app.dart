@@ -11,6 +11,48 @@ import '../features/settings/controllers/settings_controller.dart';
 import '../features/settings/screens/settings_screen.dart';
 import 'routes.dart';
 
+import 'package:flutter/material.dart';
+import '../core/constants/app_constants.dart';
+import '../core/theme/app_theme.dart';
+import '../features/game/controllers/game_controller.dart';
+import '../features/game/screens/discussion_screen.dart';
+import '../features/game/screens/game_setup_screen.dart';
+import '../features/game/screens/results_screen.dart';
+import '../features/game/screens/role_reveal_screen.dart';
+import '../features/home/screens/home_screen.dart';
+import '../features/settings/controllers/settings_controller.dart';
+import '../features/settings/screens/settings_screen.dart';
+import 'routes.dart';
+
+/// Top-level app state inherited scope providing seamless access to controllers
+class AppStateScope extends InheritedWidget {
+  const AppStateScope({
+    super.key,
+    required this.gameController,
+    required this.settingsController,
+    required super.child,
+  });
+
+  final GameController gameController;
+  final SettingsController settingsController;
+
+  static AppStateScope of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<AppStateScope>();
+    assert(scope != null, 'No AppStateScope found in context');
+    return scope!;
+  }
+
+  static AppStateScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppStateScope>();
+  }
+
+  @override
+  bool updateShouldNotify(AppStateScope oldWidget) {
+    return gameController != oldWidget.gameController ||
+        settingsController != oldWidget.settingsController;
+  }
+}
+
 class ImposterApp extends StatefulWidget {
   const ImposterApp({super.key});
 
@@ -31,35 +73,39 @@ class _ImposterAppState extends State<ImposterApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _settingsController,
-      builder: (context, _) {
-        return MaterialApp(
-          title: AppConstants.appName,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: _settingsController.themeMode,
-          initialRoute: AppRoutes.home,
-          routes: {
-            AppRoutes.home: (context) => const HomeScreen(),
-            AppRoutes.gameSetup: (context) => GameSetupScreen(
-                  controller: _gameController,
-                  settingsController: _settingsController,
-                ),
-            AppRoutes.roleReveal: (context) => RoleRevealScreen(
-                  controller: _gameController,
-                  settingsController: _settingsController,
-                ),
-            AppRoutes.discussion: (context) =>
-                DiscussionScreen(controller: _gameController),
-            AppRoutes.results: (context) =>
-                ResultsScreen(controller: _gameController),
-            AppRoutes.settings: (context) =>
-                SettingsScreen(controller: _settingsController),
-          },
-        );
-      },
+    return AppStateScope(
+      gameController: _gameController,
+      settingsController: _settingsController,
+      child: ListenableBuilder(
+        listenable: _settingsController,
+        builder: (context, _) {
+          return MaterialApp(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: _settingsController.themeMode,
+            initialRoute: AppRoutes.home,
+            routes: {
+              AppRoutes.home: (context) => const HomeScreen(),
+              AppRoutes.gameSetup: (context) => GameSetupScreen(
+                    controller: _gameController,
+                    settingsController: _settingsController,
+                  ),
+              AppRoutes.roleReveal: (context) => RoleRevealScreen(
+                    controller: _gameController,
+                    settingsController: _settingsController,
+                  ),
+              AppRoutes.discussion: (context) =>
+                  DiscussionScreen(controller: _gameController),
+              AppRoutes.results: (context) =>
+                  ResultsScreen(controller: _gameController),
+              AppRoutes.settings: (context) =>
+                  SettingsScreen(controller: _settingsController),
+            },
+          );
+        },
+      ),
     );
   }
 }

@@ -30,7 +30,7 @@ class PlayerCard extends StatelessWidget {
     }
 
     final cardBg = isSelected
-        ? AppColors.primarySoft
+        ? AppColors.primarySoftColor(isDark)
         : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight);
 
     return AppCard(
