@@ -3,6 +3,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = 'Find The Imposter';
+  static const String appVersion = '0.1.2+2';
 
   // Game defaults
   static const int minPlayers = 3;

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/in_app_update_service.dart';
 import '../../../core/utils/timer_helper.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/bouncing_scale.dart';
@@ -88,6 +89,157 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleCheckForUpdates(BuildContext context) async {
+    final updateService = InAppUpdateService.instance;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (updateService.isDownloaded) {
+      await updateService.completeFlexibleUpdate();
+      return;
+    }
+
+    final result = await updateService.checkForUpdate(isManual: true);
+    if (!context.mounted) return;
+
+    if (result.isAvailable && result.info != null) {
+      final info = result.info!;
+      showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          backgroundColor:
+              isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoftColor(isDark),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const FaIcon(
+                  FontAwesomeIcons.cloudArrowDown,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Update Available',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A new version of ${AppConstants.appName} is available on Google Play.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+              if (info.availableVersionCode != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Available Version Code: ${info.availableVersionCode}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.textMutedDark
+                        : AppColors.textMutedLight,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                'Later',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textMutedDark
+                      : AppColors.textMutedLight,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                if (info.immediateUpdateAllowed &&
+                    !info.flexibleUpdateAllowed) {
+                  updateService.performImmediateUpdate();
+                } else {
+                  updateService.startFlexibleUpdate();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              ),
+              child: const Text(
+                'Update Now',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                result.isError
+                    ? Icons.info_outline_rounded
+                    : Icons.check_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  result.message,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: result.isError
+              ? const Color(0xFF334155)
+              : const Color(0xFF1E293B),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override
@@ -688,7 +840,125 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Section Title: Management
+                // Section Title: Application & Updates
+                _buildSectionTitle('APPLICATION & UPDATES'),
+
+                // Check for Updates Card
+                ListenableBuilder(
+                  listenable: InAppUpdateService.instance,
+                  builder: (context, _) {
+                    final updateService = InAppUpdateService.instance;
+                    final isChecking = updateService.isChecking;
+                    final isDownloaded = updateService.isDownloaded;
+                    final isAvailable = updateService.isUpdateAvailable;
+                    final isDownloading = updateService.isDownloading;
+
+                    String subtitle;
+                    if (isChecking) {
+                      subtitle = 'Checking Google Play for updates...';
+                    } else if (isDownloading) {
+                      subtitle = 'Downloading update in background...';
+                    } else if (isDownloaded) {
+                      subtitle = 'Update downloaded! Tap to restart & apply';
+                    } else if (isAvailable) {
+                      subtitle = 'New version available! Tap to install';
+                    } else {
+                      subtitle = 'Version ${AppConstants.appVersion}';
+                    }
+
+                    return BouncingScale(
+                      onTap: isChecking
+                          ? null
+                          : () => _handleCheckForUpdates(context),
+                      child: AppCard(
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: (isDownloaded || isAvailable)
+                                    ? AppColors.primary
+                                    : (isDark
+                                        ? AppColors.surfaceDarkElevated
+                                        : AppColors.surfaceLightElevated),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: FaIcon(
+                                  isDownloaded
+                                      ? FontAwesomeIcons.arrowRotateRight
+                                      : (isAvailable
+                                          ? FontAwesomeIcons.cloudArrowDown
+                                          : FontAwesomeIcons.arrowsRotate),
+                                  size: 16,
+                                  color: (isDownloaded || isAvailable)
+                                      ? Colors.white
+                                      : AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Check for Updates',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    subtitle,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: (isDownloaded || isAvailable)
+                                          ? AppColors.primary
+                                          : (isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondaryLight),
+                                      fontWeight: (isDownloaded || isAvailable)
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isChecking || isDownloading)
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary),
+                                ),
+                              )
+                            else
+                              FaIcon(
+                                FontAwesomeIcons.chevronRight,
+                                size: 12,
+                                color: isDark
+                                    ? AppColors.textMutedDark
+                                    : AppColors.textMutedLight,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                // Section Title: Preferences
                 _buildSectionTitle('PREFERENCES'),
 
                 // Reset Settings Card
@@ -721,7 +991,7 @@ class SettingsScreen extends StatelessWidget {
 
                 Center(
                   child: Text(
-                    '${AppConstants.appName} v0.1.1',
+                    '${AppConstants.appName} v${AppConstants.appVersion}',
                     style: TextStyle(
                       color: isDark
                           ? AppColors.textMutedDark

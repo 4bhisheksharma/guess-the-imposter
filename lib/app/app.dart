@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
+import '../core/services/in_app_update_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/custom_words/screens/custom_categories_screen.dart';
 import '../features/custom_words/screens/edit_category_screen.dart';
@@ -72,6 +73,7 @@ class _ImposterAppState extends State<ImposterApp> {
         builder: (context, _) {
           return MaterialApp(
             title: AppConstants.appName,
+            scaffoldMessengerKey: InAppUpdateService.scaffoldMessengerKey,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,

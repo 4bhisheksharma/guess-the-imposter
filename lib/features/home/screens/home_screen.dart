@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/in_app_update_service.dart';
 import '../../../core/services/word_service.dart';
 import '../../../core/widgets/bouncing_scale.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -20,6 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Pre-warm words database on home screen mount
     WordService.instance.loadWords();
+    // Silently check for in-app updates in the background on launch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      InAppUpdateService.instance.performAutomaticCheck();
+    });
   }
 
   void _showHowToPlayDialog(BuildContext context) {
