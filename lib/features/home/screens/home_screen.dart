@@ -332,19 +332,46 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context, AppRoutes.gameSetup),
                             ),
                             const SizedBox(height: 12),
-                            CustomButton(
-                              label: 'How to Play',
-                              icon: FontAwesomeIcons.circleQuestion,
-                              backgroundColor: isDark
-                                  ? AppColors.surfaceDark
-                                  : AppColors.surfaceLight,
-                              textColor: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                              borderColor: isDark
-                                  ? AppColors.borderDark
-                                  : AppColors.borderLight,
-                              onPressed: () => _showHowToPlayDialog(context),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomButton(
+                                    label: 'Custom Packs',
+                                    icon: FontAwesomeIcons.folderPlus,
+                                    height: 48,
+                                    backgroundColor: isDark
+                                        ? AppColors.surfaceDark
+                                        : AppColors.surfaceLight,
+                                    textColor: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    borderColor: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.borderLight,
+                                    onPressed: () => Navigator.pushNamed(
+                                        context, AppRoutes.customCategories),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: CustomButton(
+                                    label: 'How to Play',
+                                    icon: FontAwesomeIcons.circleQuestion,
+                                    height: 48,
+                                    backgroundColor: isDark
+                                        ? AppColors.surfaceDark
+                                        : AppColors.surfaceLight,
+                                    textColor: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                    borderColor: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.borderLight,
+                                    onPressed: () =>
+                                        _showHowToPlayDialog(context),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 12),
                           ],

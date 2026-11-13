@@ -27,6 +27,20 @@ class ResultsScreen extends StatelessWidget {
             ? AppColors.imposter.withValues(alpha: 0.15)
             : const Color(0xFFFDEDEC));
 
+    String outcomeTitle = civiliansWon ? 'Civilians Win!' : 'Imposter Wins!';
+    String? outcomeSubtitle;
+    if (session.imposterGuessedWord) {
+      outcomeTitle = 'Imposter Stole the Win!';
+      outcomeSubtitle =
+          '${lastEliminated?.name ?? 'Imposter'} was voted out, but correctly guessed the secret word!';
+    } else if (civiliansWon) {
+      outcomeSubtitle =
+          '${lastEliminated?.name ?? 'Imposter'} was caught and failed their final guess!';
+    } else if (lastEliminated != null && !lastEliminated.isImposter) {
+      outcomeSubtitle =
+          'Civilians mistakenly eliminated ${lastEliminated.name}, an innocent civilian!';
+    }
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -81,9 +95,8 @@ class ResultsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            civiliansWon
-                                ? 'Civilians Win!'
-                                : 'Imposter Wins!',
+                            outcomeTitle,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -92,6 +105,19 @@ class ResultsScreen extends StatelessWidget {
                                   : AppColors.textPrimaryLight,
                             ),
                           ),
+                          if (outcomeSubtitle != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              outcomeSubtitle,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
                           if (lastEliminated != null) ...[
                             const SizedBox(height: 6),
                             Container(

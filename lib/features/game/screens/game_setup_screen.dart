@@ -36,14 +36,39 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _enableHints = widget.settingsController.enableImposterHints;
-    _discussionTimerSeconds = widget.settingsController.discussionTimerSeconds;
+    _enableHints = widget.controller.enableHints ??
+        widget.settingsController.enableImposterHints;
+    _discussionTimerSeconds = widget.controller.discussionTimerSeconds ??
+        widget.settingsController.discussionTimerSeconds;
     _playerCount = widget.controller.playerNames.length.clamp(
       AppConstants.minPlayers,
       AppConstants.maxPlayers,
     );
+    _imposterCount = widget.controller.imposterCount
+        .clamp(1, (_playerCount - 1).clamp(1, 5));
+    _selectedCategoryId = widget.controller.selectedCategoryId;
     widget.controller.setPlayerCount(_playerCount);
     WordService.instance.loadWords();
+  }
+
+  void _resetAllSetup() {
+    HapticFeedback.mediumImpact();
+    widget.controller.resetSetupConfig();
+    setState(() {
+      _enableHints = widget.settingsController.enableImposterHints;
+      _discussionTimerSeconds = widget.settingsController.discussionTimerSeconds;
+      _playerCount = widget.controller.playerNames.length;
+      _imposterCount = AppConstants.defaultImpostersCount;
+      _selectedCategoryId = 'all';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Game setup reset to defaults'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   FaIconData _getCategoryIcon(String iconName) {
@@ -64,6 +89,16 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
         return FontAwesomeIcons.house;
       case 'shapes':
         return FontAwesomeIcons.shapes;
+      case 'fire':
+        return FontAwesomeIcons.fire;
+      case 'heart':
+        return FontAwesomeIcons.heart;
+      case 'star':
+        return FontAwesomeIcons.star;
+      case 'gamepad':
+        return FontAwesomeIcons.gamepad;
+      case 'music':
+        return FontAwesomeIcons.music;
       default:
         return FontAwesomeIcons.dice;
     }
@@ -208,6 +243,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
       playerNames: playerNames,
       imposterCount: _imposterCount,
       category: categoryName,
+      categoryId: _selectedCategoryId,
       secretWord: wordEntry.word,
       hint: wordEntry.hint,
       imposterHintEnabled: _enableHints,
@@ -229,6 +265,19 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Game Setup'),
+            actions: [
+              IconButton(
+                tooltip: 'Reset to Defaults',
+                icon: FaIcon(
+                  FontAwesomeIcons.rotateLeft,
+                  size: 15,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+                onPressed: _resetAllSetup,
+              ),
+            ],
           ),
           body: SafeArea(
             child: LayoutBuilder(
@@ -299,8 +348,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                                       icon: _getCategoryIcon(cat.iconName),
                                       count: cat.wordCount,
                                       isSelected: _selectedCategoryId == cat.id,
+                                      isCustom: cat.isCustom,
                                     );
                                   }),
+                                  // "+ Custom Pack" creation button
+                                  _buildCreateCategoryCard(isDark),
                                 ],
                               ),
                             ),
@@ -338,8 +390,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                               value: _imposterCount,
                               minValue: AppConstants.minImposters,
                               maxValue: (_playerCount - 1).clamp(1, 5),
-                              onChanged: (val) =>
-                                  setState(() => _imposterCount = val),
+                              onChanged: (val) {
+                                setState(() => _imposterCount = val);
+                                widget.controller
+                                    .updateSetupConfig(imposterCount: val);
+                              },
                             ),
                             const SizedBox(height: 14),
 
@@ -410,9 +465,15 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                                         children: [
                                           BouncingScale(
                                             onTap: _discussionTimerSeconds > 30
-                                                ? () => setState(() =>
-                                                    _discussionTimerSeconds -=
-                                                        30)
+                                                ? () {
+                                                    setState(() =>
+                                                        _discussionTimerSeconds -=
+                                                            30);
+                                                    widget.controller
+                                                        .updateSetupConfig(
+                                                            discussionTimerSeconds:
+                                                                _discussionTimerSeconds);
+                                                  }
                                                 : null,
                                             child: Container(
                                               width: 38,
@@ -465,9 +526,15 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                                           ),
                                           BouncingScale(
                                             onTap: _discussionTimerSeconds < 600
-                                                ? () => setState(() =>
-                                                    _discussionTimerSeconds +=
-                                                        30)
+                                                ? () {
+                                                    setState(() =>
+                                                        _discussionTimerSeconds +=
+                                                            30);
+                                                    widget.controller
+                                                        .updateSetupConfig(
+                                                            discussionTimerSeconds:
+                                                                _discussionTimerSeconds);
+                                                  }
                                                 : null,
                                             child: Container(
                                               width: 38,
@@ -582,8 +649,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                                   ),
                                   Switch(
                                     value: _enableHints,
-                                    onChanged: (val) =>
-                                        setState(() => _enableHints = val),
+                                    onChanged: (val) {
+                                      setState(() => _enableHints = val);
+                                      widget.controller
+                                          .updateSetupConfig(enableHints: val);
+                                    },
                                   ),
                                 ],
                               ),
@@ -772,7 +842,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
     return Expanded(
       child: BouncingScale(
-        onTap: () => setState(() => _discussionTimerSeconds = seconds),
+        onTap: () {
+          setState(() => _discussionTimerSeconds = seconds);
+          widget.controller
+              .updateSetupConfig(discussionTimerSeconds: seconds);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOutCubic,
@@ -816,11 +890,15 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
     required FaIconData icon,
     required int count,
     required bool isSelected,
+    bool isCustom = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BouncingScale(
-      onTap: () => setState(() => _selectedCategoryId = id),
+      onTap: () {
+        setState(() => _selectedCategoryId = id);
+        widget.controller.updateSetupConfig(categoryId: id);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOutCubic,
@@ -868,17 +946,43 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                   size: 18,
                   color: isSelected ? Colors.white : AppColors.primary,
                 ),
-                Text(
-                  '$count',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected
-                        ? Colors.white70
-                        : (isDark
-                            ? AppColors.textMutedDark
-                            : AppColors.textSecondaryLight),
-                  ),
+                Row(
+                  children: [
+                    if (isCustom) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1.5),
+                        margin: const EdgeInsets.only(right: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white24
+                              : AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Custom',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                isSelected ? Colors.white : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                    Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? Colors.white70
+                            : (isDark
+                                ? AppColors.textMutedDark
+                                : AppColors.textSecondaryLight),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -894,6 +998,59 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                     : (isDark
                         ? AppColors.textPrimaryDark
                         : AppColors.textPrimaryLight),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateCategoryCard(bool isDark) {
+    return BouncingScale(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.customCategories),
+      child: Container(
+        width: 104,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppColors.surfaceDarkElevated
+              : AppColors.surfaceLightElevated,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            style: BorderStyle.solid,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoftColor(isDark),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.plus,
+                  size: 13,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Add Pack',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
           ],

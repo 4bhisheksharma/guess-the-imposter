@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
 import '../core/theme/app_theme.dart';
+import '../features/custom_words/screens/custom_categories_screen.dart';
+import '../features/custom_words/screens/edit_category_screen.dart';
 import '../features/game/controllers/game_controller.dart';
 import '../features/game/screens/discussion_screen.dart';
 import '../features/game/screens/game_setup_screen.dart';
+import '../features/game/screens/imposter_guess_screen.dart';
 import '../features/game/screens/results_screen.dart';
 import '../features/game/screens/role_reveal_screen.dart';
 import '../features/home/screens/home_screen.dart';
@@ -11,18 +14,6 @@ import '../features/settings/controllers/settings_controller.dart';
 import '../features/settings/screens/settings_screen.dart';
 import 'routes.dart';
 
-import 'package:flutter/material.dart';
-import '../core/constants/app_constants.dart';
-import '../core/theme/app_theme.dart';
-import '../features/game/controllers/game_controller.dart';
-import '../features/game/screens/discussion_screen.dart';
-import '../features/game/screens/game_setup_screen.dart';
-import '../features/game/screens/results_screen.dart';
-import '../features/game/screens/role_reveal_screen.dart';
-import '../features/home/screens/home_screen.dart';
-import '../features/settings/controllers/settings_controller.dart';
-import '../features/settings/screens/settings_screen.dart';
-import 'routes.dart';
 
 /// Top-level app state inherited scope providing seamless access to controllers
 class AppStateScope extends InheritedWidget {
@@ -98,10 +89,16 @@ class _ImposterAppState extends State<ImposterApp> {
                   ),
               AppRoutes.discussion: (context) =>
                   DiscussionScreen(controller: _gameController),
+              AppRoutes.imposterGuess: (context) =>
+                  ImposterGuessScreen(controller: _gameController),
               AppRoutes.results: (context) =>
                   ResultsScreen(controller: _gameController),
               AppRoutes.settings: (context) =>
                   SettingsScreen(controller: _settingsController),
+              AppRoutes.customCategories: (context) =>
+                  const CustomCategoriesScreen(),
+              AppRoutes.editCategory: (context) =>
+                  const EditCategoryScreen(),
             },
           );
         },

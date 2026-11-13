@@ -6,6 +6,7 @@ import '../../../app/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../controllers/game_controller.dart';
+import '../models/game_session.dart';
 import '../widgets/player_card.dart';
 import '../widgets/timer_display.dart';
 
@@ -134,7 +135,12 @@ class _DiscussionScreenState extends State<DiscussionScreen> {
     if (_selectedPlayerId == null) return;
     HapticFeedback.heavyImpact();
     widget.controller.eliminatePlayer(_selectedPlayerId!);
-    Navigator.pushReplacementNamed(context, AppRoutes.results);
+
+    if (widget.controller.session.phase == GamePhase.imposterGuess) {
+      Navigator.pushReplacementNamed(context, AppRoutes.imposterGuess);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.results);
+    }
   }
 
   @override

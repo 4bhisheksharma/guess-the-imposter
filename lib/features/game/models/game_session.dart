@@ -5,6 +5,7 @@ enum GamePhase {
   roleReveal,
   discussion,
   voting,
+  imposterGuess,
   gameOver,
 }
 
@@ -12,6 +13,7 @@ class GameSession {
   const GameSession({
     this.players = const [],
     this.category = 'General',
+    this.categoryId = 'all',
     this.secretWord = '',
     this.hint = '',
     this.imposterHintEnabled = true,
@@ -20,10 +22,14 @@ class GameSession {
     this.phase = GamePhase.setup,
     this.discussionDurationSeconds = 180,
     this.lastEliminatedPlayerId,
+    this.imposterGuessedWord = false,
+    this.imposterGuessChoice,
+    this.lastChanceWordOptions = const [],
   });
 
   final List<PlayerModel> players;
   final String category;
+  final String categoryId;
   final String secretWord;
   final String hint;
   final bool imposterHintEnabled;
@@ -32,6 +38,9 @@ class GameSession {
   final GamePhase phase;
   final int discussionDurationSeconds;
   final String? lastEliminatedPlayerId;
+  final bool imposterGuessedWord;
+  final String? imposterGuessChoice;
+  final List<String> lastChanceWordOptions;
 
   PlayerModel? get currentRevealPlayer {
     if (currentRevealIndex < players.length) {
@@ -60,11 +69,16 @@ class GameSession {
   bool get allImpostersEliminated =>
       imposters.isNotEmpty && imposters.every((p) => p.isEliminated);
 
-  bool get civiliansWon => allImpostersEliminated;
+  /// Civilians win if all imposters are eliminated AND imposter did not guess the secret word
+  bool get civiliansWon {
+    if (imposterGuessedWord) return false;
+    return allImpostersEliminated;
+  }
 
   GameSession copyWith({
     List<PlayerModel>? players,
     String? category,
+    String? categoryId,
     String? secretWord,
     String? hint,
     bool? imposterHintEnabled,
@@ -73,10 +87,14 @@ class GameSession {
     GamePhase? phase,
     int? discussionDurationSeconds,
     String? lastEliminatedPlayerId,
+    bool? imposterGuessedWord,
+    String? imposterGuessChoice,
+    List<String>? lastChanceWordOptions,
   }) {
     return GameSession(
       players: players ?? this.players,
       category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
       secretWord: secretWord ?? this.secretWord,
       hint: hint ?? this.hint,
       imposterHintEnabled: imposterHintEnabled ?? this.imposterHintEnabled,
@@ -87,6 +105,10 @@ class GameSession {
           discussionDurationSeconds ?? this.discussionDurationSeconds,
       lastEliminatedPlayerId:
           lastEliminatedPlayerId ?? this.lastEliminatedPlayerId,
+      imposterGuessedWord: imposterGuessedWord ?? this.imposterGuessedWord,
+      imposterGuessChoice: imposterGuessChoice ?? this.imposterGuessChoice,
+      lastChanceWordOptions:
+          lastChanceWordOptions ?? this.lastChanceWordOptions,
     );
   }
 }
