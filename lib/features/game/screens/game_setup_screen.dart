@@ -248,6 +248,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
       hint: wordEntry.hint,
       imposterHintEnabled: _enableHints,
       discussionDurationSeconds: _discussionTimerSeconds,
+      enableLastChanceGuess: widget.settingsController.enableLastChanceGuess,
     );
 
     Navigator.pushNamed(context, AppRoutes.roleReveal);

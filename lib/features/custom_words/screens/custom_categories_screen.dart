@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/services/word_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/bouncing_scale.dart';
 import '../../../core/widgets/custom_button.dart';
 import 'edit_category_screen.dart';
 

@@ -25,6 +25,7 @@ class GameSession {
     this.imposterGuessedWord = false,
     this.imposterGuessChoice,
     this.lastChanceWordOptions = const [],
+    this.enableLastChanceGuess = false,
   });
 
   final List<PlayerModel> players;
@@ -41,6 +42,7 @@ class GameSession {
   final bool imposterGuessedWord;
   final String? imposterGuessChoice;
   final List<String> lastChanceWordOptions;
+  final bool enableLastChanceGuess;
 
   PlayerModel? get currentRevealPlayer {
     if (currentRevealIndex < players.length) {
@@ -90,6 +92,7 @@ class GameSession {
     bool? imposterGuessedWord,
     String? imposterGuessChoice,
     List<String>? lastChanceWordOptions,
+    bool? enableLastChanceGuess,
   }) {
     return GameSession(
       players: players ?? this.players,
@@ -109,6 +112,8 @@ class GameSession {
       imposterGuessChoice: imposterGuessChoice ?? this.imposterGuessChoice,
       lastChanceWordOptions:
           lastChanceWordOptions ?? this.lastChanceWordOptions,
+      enableLastChanceGuess:
+          enableLastChanceGuess ?? this.enableLastChanceGuess,
     );
   }
 }

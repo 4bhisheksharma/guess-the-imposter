@@ -92,6 +92,7 @@ class GameController extends ChangeNotifier {
     String hint = '',
     bool imposterHintEnabled = true,
     int discussionDurationSeconds = 180,
+    bool enableLastChanceGuess = false,
   }) {
     _playerNames = List.from(playerNames);
     _selectedCategoryId = categoryId;
@@ -129,6 +130,7 @@ class GameController extends ChangeNotifier {
       currentRevealIndex: 0,
       phase: GamePhase.roleReveal,
       discussionDurationSeconds: discussionDurationSeconds,
+      enableLastChanceGuess: enableLastChanceGuess,
     );
 
     notifyListeners();
@@ -170,8 +172,10 @@ class GameController extends ChangeNotifier {
       eliminatedPlayer = null;
     }
 
-    if (eliminatedPlayer != null && eliminatedPlayer.isImposter) {
-      // Imposter caught! Trigger last-chance guess
+    if (eliminatedPlayer != null &&
+        eliminatedPlayer.isImposter &&
+        _session.enableLastChanceGuess) {
+      // Imposter caught and last-chance guess is enabled in settings!
       final decoys = WordService.instance
           .getDecoyWords(_session.categoryId, _session.secretWord, 3);
       final options = [_session.secretWord, ...decoys]..shuffle();
@@ -183,7 +187,7 @@ class GameController extends ChangeNotifier {
         lastChanceWordOptions: options,
       );
     } else {
-      // Civilian wrongfully eliminated
+      // Civilian eliminated OR last-chance guess is disabled in settings
       _session = _session.copyWith(
         players: updatedPlayers,
         lastEliminatedPlayerId: playerId,

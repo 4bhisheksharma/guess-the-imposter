@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class SettingsController extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
   bool _enableImposterHints = true;
+  bool _enableLastChanceGuess = false; // False by default
   int _discussionTimerSeconds = 180; // 3 minutes default
   bool _timerWarningAlert = true;
   bool _holdToReveal = false;
@@ -11,6 +12,7 @@ class SettingsController extends ChangeNotifier {
 
   ThemeMode get themeMode => _themeMode;
   bool get enableImposterHints => _enableImposterHints;
+  bool get enableLastChanceGuess => _enableLastChanceGuess;
   int get discussionTimerSeconds => _discussionTimerSeconds;
   bool get timerWarningAlert => _timerWarningAlert;
   bool get holdToReveal => _holdToReveal;
@@ -26,6 +28,12 @@ class SettingsController extends ChangeNotifier {
   void setImposterHints(bool enabled) {
     if (_enableImposterHints == enabled) return;
     _enableImposterHints = enabled;
+    notifyListeners();
+  }
+
+  void setLastChanceGuess(bool enabled) {
+    if (_enableLastChanceGuess == enabled) return;
+    _enableLastChanceGuess = enabled;
     notifyListeners();
   }
 
@@ -63,6 +71,7 @@ class SettingsController extends ChangeNotifier {
   void resetToDefaults() {
     _themeMode = ThemeMode.light;
     _enableImposterHints = true;
+    _enableLastChanceGuess = false;
     _discussionTimerSeconds = 180;
     _timerWarningAlert = true;
     _holdToReveal = false;

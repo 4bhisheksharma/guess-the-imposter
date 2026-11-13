@@ -503,6 +503,70 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
 
+                const SizedBox(height: 12),
+
+                // Imposter Last Chance Guess Setting
+                AppCard(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: controller.enableLastChanceGuess
+                              ? AppColors.primarySoftColor(isDark)
+                              : (isDark
+                                  ? AppColors.surfaceDarkElevated
+                                  : AppColors.surfaceLightElevated),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: FaIcon(
+                            FontAwesomeIcons.dice,
+                            size: 16,
+                            color: controller.enableLastChanceGuess
+                                ? AppColors.primary
+                                : (isDark
+                                    ? AppColors.textMutedDark
+                                    : AppColors.textMutedLight),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Last Chance Guess',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            Text(
+                              'Caught imposter can guess word to steal victory',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: controller.enableLastChanceGuess,
+                        onChanged: (val) => controller.setLastChanceGuess(val),
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 20),
 
                 // Section Title: Feedback
